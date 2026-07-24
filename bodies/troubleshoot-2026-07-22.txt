@@ -1,0 +1,58 @@
+Dear {Name},
+
+This is a final reminder ahead of Workshop 1 tomorrow, Thursday, 23 July, 9:00 to 11:00 AM at the Center for Flexible Learning, MMSU Batac.
+
+PLEASE REPLY TO THIS EMAIL TODAY
+A one-word reply is all I need, before 5:00 PM today:
+
+  READY  -- R and RStudio are installed, the packages loaded without error,
+           and you have downloaded the workshop files.
+
+  HELP   -- anything did not work, or you are not sure whether it worked.
+
+Please reply either way. If I do not hear from you, I have no way of knowing whether you are set up, and I would rather sort out a problem tonight than tomorrow morning.
+
+
+WHY THIS MATTERS:
+Each session is two hours, and we begin working with the data at the start. Those two hours are for learning R -- they are not enough to also install software on individual laptops. If several participants arrive with an unfinished setup, the session slows down for everyone, including those who prepared. I would rather spend this evening on your installation than spend tomorrow's session on it.
+
+IF YOU HAVE NOT STARTED YET:
+There is still time, but please begin now rather than tonight. The last step takes 10 to 20 minutes on a good connection.
+
+  1. Install R first, then RStudio:
+       https://cran.r-project.org/
+       https://posit.co/download/rstudio-desktop/
+
+  2. In the RStudio Console, one line at a time:
+       install.packages(c("readr", "dplyr", "ape", "ggplot2"))
+       install.packages("BiocManager")
+       BiocManager::install("phyloseq")
+
+  3. Check it worked:
+       library(readr); library(dplyr); library(ape); library(ggplot2); library(phyloseq)
+
+     No error message means you are ready. Red text during installation is
+     normal and does not by itself mean something failed -- if you are unsure,
+     send me a screenshot and I will tell you.
+
+  4. Download the workshop files:
+       https://drive.google.com/drive/folders/1YE5dAQdELyjc7rphk2rf9KpaamAcP25e?usp=drive_link
+
+Already installed and working? You do not need to update anything. Please leave your setup as it is.
+
+TOMORROW:
+Please arrive a few minutes before 9:00 AM and bring your laptop and charger. Have RStudio open and the workshop files already downloaded before we begin.
+If anything is unclear, message me tonight -- screenshots are very helpful.
+
+  Jan Ephraim R. Vallente -- ephrvallente@gmail.com / +63-905-213-3981
+
+No prior programming experience is expected. Being stuck on the installation is not a sign you are behind; it is the most common thing that happens, and it is exactly what tonight is for.
+
+
+See you tomorrow.
+
+Best regards,
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University

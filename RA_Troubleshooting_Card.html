@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Workshop 1 — RA Troubleshooting Card</title>
+<style>
+  @page { size: A4; margin: 12mm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 9.2pt;
+         line-height: 1.32; color: #111; margin: 0; }
+  h1 { font-size: 13pt; margin: 0 0 2px 0; }
+  .sub { color: #666; font-size: 8pt; margin-bottom: 8px; }
+  h2 { font-size: 9.5pt; margin: 9px 0 3px 0; padding-bottom: 2px;
+       border-bottom: 1.5px solid #333; text-transform: uppercase; letter-spacing: 0.4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2px; }
+  td { vertical-align: top; padding: 2.5px 4px; border-bottom: 1px solid #e0e0e0; }
+  td.sym { width: 41%; font-family: "SF Mono", Consolas, monospace; font-size: 8.3pt; }
+  td.fix { width: 59%; }
+  code { font-family: "SF Mono", Consolas, monospace; font-size: 8.3pt;
+         background: #f2f2f2; padding: 0 2px; }
+  .hot { background: #fff4d6; }
+  .note { font-size: 8pt; color: #444; margin: 4px 0 0 0; }
+  .two { display: flex; gap: 14px; }
+  .two > div { flex: 1; }
+</style>
+</head>
+<body>
+
+<h1>Workshop 1 — Troubleshooting Card</h1>
+<div class="sub">BSP–MMSU Workshop Series · Session 1 · 23 July 2026 · Jan Ephraim R. Vallente, Research Assistant</div>
+
+<h2>First three questions, in order</h2>
+<table>
+<tr><td class="sym">1. <code>getwd()</code></td><td class="fix">Does it end in the dataset folder? If not: <strong>Session → Set Working Directory → To Source File Location</strong></td></tr>
+<tr><td class="sym">2. <code>list.files("data")</code></td><td class="fix">Are the CSVs actually there? Confirms path AND that files were extracted.</td></tr>
+<tr><td class="sym">3. Did they run the chunks <em>above</em>?</td><td class="fix">Most "not found" errors are skipped chunks, not typos.</td></tr>
+</table>
+
+<h2>Documented in the materials (§17)</h2>
+<table>
+<tr><td class="sym">object 'kinetics' not found</td><td class="fix">Import chunk not run (or it failed). Re-run the chunk that creates <code>kinetics</code>.</td></tr>
+<tr><td class="sym">cannot open file / does not exist</td><td class="fix"><code>getwd()</code> → <code>list.files()</code> → <code>list.files("data")</code></td></tr>
+<tr><td class="sym">could not find function "%&gt;%"</td><td class="fix"><code>library(dplyr)</code></td></tr>
+<tr><td class="sym">could not find function "ggplot"</td><td class="fix"><code>library(ggplot2)</code></td></tr>
+<tr><td class="sym">object 'time_hr' not found</td><td class="fix">Case-sensitivity. <code>Time_hr</code> ≠ <code>time_hr</code> ≠ <code>TIME_HR</code>. Check <code>names(kinetics)</code>.</td></tr>
+<tr><td class="sym">graph renders empty</td><td class="fix">Filter matched nothing. <code>table(kinetics$Metric)</code>, <code>dim(od_data)</code></td></tr>
+</table>
+
+<h2>Not in the materials — expect these anyway</h2>
+<table>
+<tr class="hot"><td class="sym">Console shows <code>+</code> and seems frozen</td><td class="fix"><strong>Press Esc.</strong> Unclosed <code>(</code> or <code>"</code>. Most common beginner lockup — they will think R has crashed.</td></tr>
+<tr><td class="sym">there is no package called 'x'</td><td class="fix">Not <em>installed</em> (≠ not loaded). <code>install.packages("x")</code> then <code>library(x)</code></td></tr>
+<tr><td class="sym">package 'phyloseq' is not available</td><td class="fix">Bioconductor, not CRAN. <code>BiocManager::install("phyloseq")</code></td></tr>
+<tr><td class="sym">unexpected input / unexpected symbol</td><td class="fix">Curly quotes from copy-paste. Retype <code>"</code> manually, or check for <code>“ ”</code>.</td></tr>
+<tr><td class="sym">Red stop sign in console corner</td><td class="fix">R is busy, not broken. Wait, or click it to interrupt.</td></tr>
+<tr><td class="sym">Works on my Mac, fails on their Windows</td><td class="fix">Filename case. macOS is case-insensitive by default; check exact spelling against <code>list.files()</code>.</td></tr>
+<tr><td class="sym">Nothing happens on Run</td><td class="fix">Cursor in the Console, not the Script pane — or no line selected. Ctrl/Cmd+Enter runs the current line.</td></tr>
+<tr><td class="sym">Plot pane blank / "figure margins too large"</td><td class="fix">Plot pane too small. Drag it larger, or zoom out.</td></tr>
+</table>
+
+<h2>Escalation</h2>
+<p class="note"><strong>Do not debug one person for more than ~90 seconds during a live exercise.</strong> With 29 participants
+in a two-hour block, one long stop costs the room. If it is not on this card: seat them beside a working
+neighbour, note the name and the error, and return at the break. A participant who watches someone else's
+screen for five minutes learns more than one who watches you type.</p>
+<p class="note"><strong>If several people hit the same thing at once</strong>, stop the room and fix it out loud once.
+Ask Dr. Forteza to pause rather than solving it 29 times in parallel.</p>
+
+</body>
+</html>

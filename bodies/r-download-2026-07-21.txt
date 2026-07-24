@@ -1,0 +1,63 @@
+Dear {Name},
+
+
+
+Thank you for registering for the Balik Scientist Program Workshop Series, "Understanding Molecular and Biological Data Through R," with Dr. Imelda L. Forteza.
+
+WORKSHOP DETAILS
+
+Dates:  July 23, July 30, and August 6, 2026
+Time:   9:00 AM to 11:00 AM
+Venue:  Center for Flexible Learning, Mariano Marcos State University,
+        Batac City, Ilocos Norte 2906
+
+Please bring your laptop and its charger.
+
+PLEASE INSTALL BEFORE THE SESSION
+
+Each session runs for two hours, and we will begin working with the data straight away. Please complete the installation at home before July 23 -- there will not be time to install software during the session, and campus wifi will be slow with everyone downloading at once.
+
+Step 1. Install R first, then RStudio. The order matters, as RStudio needs R to already be present.
+
+  R:       https://cran.r-project.org/
+  RStudio: https://posit.co/download/rstudio-desktop/
+
+Step 2. Open RStudio, and paste the following into the Console panel (bottom left), one line at a time, pressing Enter after each:
+
+  install.packages(c("readr", "dplyr", "ape", "ggplot2"))
+  install.packages("BiocManager")
+  BiocManager::install("phyloseq")
+
+The last line installs a large package and may take 10 to 20 minutes. If you are asked whether to update other packages, answering "n" (no) is fine. Some red text during installation is normal and does not necessarily mean something has failed.
+
+Step 3. Confirm everything is ready by pasting this in and pressing Enter:
+
+  library(readr); library(dplyr); library(ape); library(ggplot2); library(phyloseq)
+
+If that produces no error message, you are set.
+
+WORKSHOP FILES
+
+Please download the datasets before the session as well:
+
+  https://drive.google.com/drive/folders/1YE5dAQdELyjc7rphk2rf9KpaamAcP25e?usp=drive_link
+
+The folder contains the datasets for both parts of Workshop 1, along with a README. The .html files can be opened in any web browser -- just double-click them.
+
+IF SOMETHING GOES WRONG
+
+If the installation fails, or you are unsure whether it worked, please message me by Wednesday evening, July 22, so we can sort it out before the session rather than during it. Screenshots of any error message are very helpful.
+
+  Jan Ephraim R. Vallente -- ephrvallente@gmail.com / +63-905-213-3981
+
+No prior programming experience is expected. If you have never used R before, that is entirely fine -- that is what the workshop is for.
+
+See you on July 23.
+
+
+
+Best regards,
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University

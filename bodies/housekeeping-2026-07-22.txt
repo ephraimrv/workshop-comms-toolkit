@@ -1,0 +1,19 @@
+Hi everyone,
+
+Thank you for your patience today with all the installation troubleshooting — everyone is now fully set up and ready for tomorrow.
+
+One small thing before we start Session 1: a bit of folder housekeeping. Nothing complicated, but sorting it out tonight means we spend tomorrow's session on the actual analysis, not on file paths.
+
+I've attached a short one-pager covering:
+• the folder structure you already have (leave it as is — don't rename or move anything)
+• where to save your own R scripts as you work
+• one RStudio setting that makes file paths "just work" on both Windows and Mac, so none of us have to figure out whose computer uses which path format
+
+Takes about two minutes to read. Please have a look before tomorrow — we'll move faster if everyone's folder is behaving the same way from the start.
+
+See you tomorrow, 9:00 AM at the Center for Flexible Learning, MMSU Batac.
+
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University

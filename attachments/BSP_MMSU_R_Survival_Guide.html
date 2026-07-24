@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BSP–MMSU Workshop Series — R Survival Guide</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 10pt;
+         line-height: 1.45; color: #1a1a1a; max-width: 720px; margin: 30px auto; padding: 0 18px; }
+  h1 { font-size: 16pt; margin: 0 0 3px 0; }
+  .sub { color: #666; font-size: 8.5pt; margin-bottom: 4px; }
+  .byline { color: #666; font-size: 8.5pt; border-bottom: 2px solid #333;
+            padding-bottom: 10px; margin-bottom: 16px; }
+  h2 { font-size: 11.5pt; margin: 22px 0 6px 0; padding-bottom: 3px;
+       border-bottom: 1.5px solid #333; }
+  h3 { font-size: 10pt; margin: 14px 0 4px 0; color: #222; }
+  code { font-family: "SF Mono", Consolas, monospace; font-size: 9pt;
+         background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; border-left: 3px solid #999;
+        border-radius: 4px; padding: 9px 13px; font-size: 8.8pt; overflow-x: auto;
+        line-height: 1.4; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+  td, th { vertical-align: top; padding: 4px 6px; border-bottom: 1px solid #e2e2e2;
+           text-align: left; }
+  th { background: #f4f4f4; font-size: 8.5pt; text-transform: uppercase;
+       letter-spacing: 0.4px; }
+  td.sym { width: 42%; font-family: "SF Mono", Consolas, monospace; font-size: 8.6pt; }
+  .box { border-left: 3px solid #c9a227; background: #fdfaf0; padding: 9px 14px;
+         margin: 12px 0; }
+  .box.stop { border-left-color: #c0392b; background: #fdf3f2; }
+  .box.go { border-left-color: #2e8b57; background: #f2faf5; }
+  .lbl { font-weight: 600; font-size: 8.5pt; text-transform: uppercase;
+         letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+  .yes { color: #2e8b57; font-weight: 600; }
+  .no { color: #c0392b; font-weight: 600; }
+  ul { margin: 5px 0 5px 0; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  .foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc;
+          font-size: 8.5pt; color: #555; }
+  .toc { background: #f7f7f7; border: 1px solid #e0e0e0; border-radius: 5px;
+         padding: 10px 16px; font-size: 9pt; }
+  .toc ol { margin: 4px 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1>The R Survival Guide</h1>
+<div class="sub">Getting unstuck without waiting for help</div>
+<div class="byline">
+BSP–MMSU Workshop Series · Understanding Biological Data Through R<br>
+Balik Scientist Program · Mariano Marcos State University<br>
+Programme Lead: Dr. Imelda L. Forteza<br>
+Document Owner: Jan Ephraim R. Vallente, Research Assistant
+</div>
+
+<p>This guide was written after Session 1, based on the problems participants actually
+ran into on the day. Nothing here is hypothetical — every item below happened to
+someone in the room.</p>
+
+<p>Keep it open beside RStudio. Most problems in this workshop are one of about a dozen
+things, and nearly all of them you can fix yourself in under a minute once you recognise
+them.</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li>Reading the materials: what is code, and what isn't</li>
+  <li>Reading the console: <code>&gt;</code>, <code>+</code>, and questions</li>
+  <li>Installing packages: warnings you can ignore, and ones you cannot</li>
+  <li>When an installation is interrupted</li>
+  <li>Where your files live</li>
+  <li>Error message decoder</li>
+  <li>Before you raise your hand</li>
+</ol>
+</div>
+
+<h2>1. Reading the materials: what is code, and what isn't</h2>
+
+<h3>First: open the materials in a web browser</h3>
+<p>The workshop materials are <code>.html</code> files. They are meant to be opened in a
+browser — Chrome, Edge, Firefox or Safari. If you open one by double-clicking and it
+appears as a wall of angle brackets, you are looking at the file's underlying source
+code rather than the document:</p>
+<pre>&lt;div class="section level2"&gt;
+&lt;h2&gt;Import the dataset&lt;/h2&gt;
+&lt;p&gt;Run the following:&lt;/p&gt;</pre>
+<p>That is not a broken file and it is certainly not something to paste into R. It means
+the file opened in a text editor such as Notepad. Close it and instead
+<strong>right-click the file → Open with → your browser</strong>. The document will then
+appear normally, with headings, formatting and proper code blocks.</p>
+
+<h3>Then: not every grey box is code</h3>
+<p>The workshop materials contain grey boxes. <strong>Not every grey box is something you
+run.</strong> Some are code. Some are diagrams, illustrations, or examples of what output
+looks like. Copying a diagram into the console will produce a confusing error.</p>
+
+<p>Before copying anything, ask: <em>is this an instruction to R, or a picture?</em></p>
+
+<h3>This is code — run it</h3>
+<pre>soil_otu &lt;- read.csv("data/soil.otu.csv")
+library(ggplot2)
+head(kinetics)</pre>
+<p><span class="yes">Signs it is code:</span> function names followed by round brackets
+<code>()</code>; the assignment arrow <code>&lt;-</code>; a dollar sign <code>$</code>;
+filenames in quotation marks; the word <code>library</code>.</p>
+
+<h3>This is a diagram — do not run it</h3>
+<pre>Metadata
+Feature table
+Taxonomy
+Phylogenetic tree
+        ↓
+One analysis-ready phyloseq object</pre>
+<p><span class="no">Signs it is not code:</span> arrows such as <code>↓</code> or
+<code>→</code>; plain English nouns listed on separate lines; no brackets anywhere;
+box-drawing characters; it reads like a description rather than an instruction.</p>
+
+<h3>This is output — do not run it either</h3>
+<pre>[1] 120   4</pre>
+<p>Output is what R <em>gives back to you</em> after running something. It is printed in
+the materials so you can check your result matches. Lines beginning with
+<code>[1]</code> are almost always output, not input.</p>
+
+<div class="box">
+<span class="lbl">Rule of thumb</span>
+If a block has no round brackets, no <code>&lt;-</code>, and no quotation marks, it is
+almost certainly not code. When unsure, ask before running it — it takes five seconds
+and saves five minutes.
+</div>
+
+<h2>2. Reading the console: <code>&gt;</code>, <code>+</code>, and questions</h2>
+
+<p>The console tells you what it is waiting for. Learning to read the first character of
+the line solves a surprising number of problems.</p>
+
+<table>
+<tr><th style="width:22%">You see</th><th>It means</th><th style="width:32%">What to do</th></tr>
+<tr>
+  <td class="sym">&gt;</td>
+  <td>R is ready and waiting for a command.</td>
+  <td>Type or paste your code normally.</td>
+</tr>
+<tr>
+  <td class="sym">+</td>
+  <td>R thinks your command is unfinished — usually a missing closing
+      <code>)</code> or <code>"</code>. It is <strong>not</strong> frozen.</td>
+  <td><strong>Press Esc</strong> to cancel, then retype the line with the bracket or
+      quote closed.</td>
+</tr>
+<tr>
+  <td class="sym">A question ending in <code>:</code> or <code>(yes/no)</code></td>
+  <td>R is asking you something and waiting for an <em>answer</em>, not for code.</td>
+  <td>Type just the letter or word it asks for, then press Enter.</td>
+</tr>
+</table>
+
+<div class="box stop">
+<span class="lbl">The most common mistake in Session 1</span>
+During installation, R may pause and print something like:
+<pre style="margin:6px 0;background:#fff;">Old packages: 'MASS', 'nlme', 'survival'
+Update all/some/none? [a/s/n]:</pre>
+This is a <strong>question</strong>, not a prompt for code. Notice there is no
+<code>&gt;</code> at the start of the line. The <code>[a/s/n]</code> tells you the only
+three valid answers: <code>a</code> for all, <code>s</code> for some, <code>n</code> for
+none.<br><br>
+Type a single letter — almost always <code>n</code> — and press Enter.
+Typing <code>library()</code> or any other R code here will not work, because R is not
+listening for code at this moment.
+</div>
+
+<div class="box go">
+<span class="lbl">Why "none" is usually the right answer</span>
+Packages such as <code>MASS</code>, <code>nlme</code> and <code>survival</code> ship with
+R itself and are almost always fine as they are. Updating them mid-installation can
+introduce new problems for no benefit. Answer <code>n</code> and carry on; update
+deliberately on a day when you have time to deal with anything that breaks.
+</div>
+
+<h2>3. Installing packages: warnings you can ignore, and ones you cannot</h2>
+
+<div class="box go">
+<span class="lbl">The single most important thing in this section</span>
+R distinguishes between a <strong>warning</strong> and an <strong>error</strong>. A warning
+is R telling you something it thought you should know; the work usually still succeeded.
+An error means the operation stopped. Red text in the console is not automatically a
+failure. Before assuming an install failed, test it directly:
+<pre style="margin:6px 0;background:#fff;">library(phyloseq)</pre>
+If the package loads without complaint, it installed correctly — regardless of how alarming
+the preceding messages looked.
+</div>
+
+<h3>"Installation paths not writeable" — this one is harmless</h3>
+<p>Several Windows participants saw a message resembling:</p>
+<pre>Installation paths not writeable, unable to update packages
+  path: C:/Program Files/R/R-4.6.1/library
+  packages:
+    boot, class, cluster, KernSmooth, lattice, MASS, Matrix, mgcv,
+    nlme, nnet, rpart, spatial, survival</pre>
+
+<p>This looks like a serious failure. It is not. <strong>The package you asked for was
+installed successfully.</strong> This message concerns a different set of packages
+entirely.</p>
+
+<p>Those thirteen packages are R's <em>recommended</em> packages — they arrive with R
+itself and live in <code>C:/Program Files/</code>, a folder Windows protects. R was
+installed there with administrator rights, so an ordinary user account cannot modify
+them afterwards. When something asks R to update them, R reports that it cannot, and
+then carries on. Your own packages are installed somewhere else entirely, in a personal
+library that <em>is</em> writable.</p>
+
+<div class="box">
+<span class="lbl">Where this message comes from</span>
+It is usually the consequence of answering something other than <code>n</code> to the
+<code>Update all/some/none? [a/s/n]:</code> question described in Section 2. Answering
+<code>n</code> avoids the whole situation, because nothing then attempts to update the
+protected folder in the first place.
+</div>
+
+<div class="box stop">
+<span class="lbl">Do not run RStudio as administrator to "fix" this</span>
+It is a tempting workaround and it causes lasting problems: packages installed as
+administrator may then be unusable, or not visible, from your normal account. The
+recommended packages do not need updating for this workshop. Leave them alone.
+</div>
+
+<h3>Two different failures that look alike</h3>
+<table>
+<tr><th style="width:44%">Message</th><th>Meaning and fix</th></tr>
+<tr>
+  <td class="sym">there is no package called 'dplyr'</td>
+  <td>Not <strong>installed</strong>. Run <code>install.packages("dplyr")</code>, then
+      <code>library(dplyr)</code>.</td>
+</tr>
+<tr>
+  <td class="sym">could not find function "%&gt;%"</td>
+  <td>Installed, but not <strong>loaded</strong> in this session. Run
+      <code>library(dplyr)</code>.</td>
+</tr>
+</table>
+<p>Installing is done once per computer. Loading must be done once per session — every
+time you restart R.</p>
+
+<h3>Bioconductor packages are not on CRAN</h3>
+<p><code>phyloseq</code> and similar packages come from Bioconductor, not CRAN, so the
+usual <code>install.packages()</code> will not find them:</p>
+<pre>install.packages("BiocManager")
+BiocManager::install("phyloseq")</pre>
+<p>Note the spelling: <strong>BiocManager</strong> — B-i-o-c. Not "BioManager".</p>
+
+<h3>The Rtools warning (Windows only)</h3>
+<p>Some Windows participants saw a warning that Rtools is missing or out of date. Mac
+users will never see this — Rtools does not exist for macOS.</p>
+
+<p>Rtools is a set of compilers. It is only required when a package has to be
+<strong>built from source code</strong> on your machine. Most of the time R downloads a
+ready-made version instead, and no compiler is needed. That is why the warning appeared
+for some people and not others: it depends on whether a ready-made version existed for
+your exact version of R.</p>
+
+<p>If R asks whether you want to install from source, and offers a choice:</p>
+<div class="box">
+<span class="lbl">Answer "no"</span>
+Answering <strong>no</strong> tells R to use the ready-made version instead. It installs
+faster, and it does not need Rtools at all. The ready-made version is usually slightly
+older, which does not matter for this workshop.
+</div>
+
+<p>Only install Rtools if a package genuinely cannot be obtained any other way — and if
+that happens, ask rather than guessing, because it is a large download and rarely the
+real fix.</p>
+
+<h2>4. When an installation is interrupted</h2>
+
+<p>During Session 1 the internet connection dropped while some participants were
+installing packages. This deserves its own section because, unlike the other problems in
+this guide, an interrupted installation can leave damage behind that only appears
+<em>later</em>, in a form that looks unrelated to the internet.</p>
+
+<h3>What you may see at the time</h3>
+<pre>cannot open URL '...'
+unable to access index for repository ...
+Warning: download had nonzero exit status</pre>
+<p>Reconnect, and simply run the installation command again. Usually that is the end of
+it.</p>
+
+<h3>What may happen afterwards</h3>
+<p>If R was part-way through writing a package when the connection failed, it may leave
+behind a marker folder named <code>00LOCK</code> or
+<code>00LOCK-&lt;packagename&gt;</code>. Until that folder is deleted, R cannot install
+<em>anything</em> into that library — including packages that have nothing to do with the
+one that failed. The message looks like this:</p>
+<pre>ERROR: failed to lock directory '.../win-library/4.6' for modifying
+Try removing '.../win-library/4.6/00LOCK-phyloseq'</pre>
+
+<div class="box">
+<span class="lbl">How to recover</span>
+<ol style="margin:4px 0;">
+  <li>Close all other R and RStudio windows, then restart your current session:
+      <strong>Session → Restart R</strong>.</li>
+  <li>Run these two lines:
+<pre style="margin:6px 0;background:#fff;">install.packages("pacman")
+pacman::p_unlock()</pre></li>
+  <li>Try your installation again.</li>
+</ol>
+If that does not work, the folder can be deleted by hand — but the path is long and
+easy to get wrong, so please ask rather than guessing. Deleting the wrong folder in a
+library directory creates a worse problem than the one you started with.
+</div>
+
+<h3>Two habits that avoid this entirely</h3>
+<ul>
+  <li><strong>Install before the session, not during it.</strong> Thirty people
+      downloading packages simultaneously over one connection is exactly when
+      interruptions happen.</li>
+  <li><strong>Let an installation finish.</strong> Do not close RStudio, restart the
+      machine, or run a second install in another window while one is in progress. Most
+      lock folders are created by an install being interrupted rather than by the network
+      alone.</li>
+</ul>
+
+<h2>5. Where your files live</h2>
+
+<p>Most "file not found" errors are not really about the file. They are about R looking
+in the wrong folder.</p>
+
+<h3>Use an R Project — this is the method that lasts</h3>
+<p>An R Project ties a folder to your work permanently. Open the project, and R is
+already looking in the right place — every time, including after restarting your
+computer.</p>
+<pre>File → New Project → Existing Directory → [choose your dataset folder]</pre>
+<p>Create one project per dataset folder, pointing at
+<code>Soil_16S_V4_V5_Molecular_data</code> or
+<code>BALO_Bacteriophage_Nonmolecular_data</code> — not at the parent folder. This is
+what makes the paths printed in the materials work exactly as written.</p>
+
+<h3>The temporary alternative</h3>
+<p>If you have not made a project, you can set the folder manually for the current
+session only:</p>
+<pre>Session → Set Working Directory → To Source File Location</pre>
+<p>This works, but it is forgotten as soon as R restarts, and you must repeat it every
+time. Use a project instead wherever you can.</p>
+
+<h3>Check it in two commands</h3>
+<pre>getwd()
+list.files("data")</pre>
+<p><code>getwd()</code> should end in your dataset folder. <code>list.files("data")</code>
+should list the CSV files. If both look right, your paths will work.</p>
+
+<div class="box">
+<span class="lbl">Do not rearrange the workshop folders</span>
+Leave the folder names and the <code>data/</code> subfolders exactly as delivered. The
+code in the materials is written against that structure. Renaming or moving folders is a
+common cause of errors that look like something else entirely.
+</div>
+
+<h2>6. Error message decoder</h2>
+
+<table>
+<tr><th style="width:44%">Message or symptom</th><th>Usual cause and fix</th></tr>
+<tr><td class="sym">object 'kinetics' not found</td>
+    <td>The chunk that creates it was never run, or failed. Re-run the import step.</td></tr>
+<tr><td class="sym">cannot open file / does not exist</td>
+    <td>Wrong folder. Check <code>getwd()</code>, then <code>list.files("data")</code>.</td></tr>
+<tr><td class="sym">could not find function "ggplot"</td>
+    <td><code>library(ggplot2)</code></td></tr>
+<tr><td class="sym">could not find function "%&gt;%"</td>
+    <td><code>library(dplyr)</code></td></tr>
+<tr><td class="sym">object 'time_hr' not found</td>
+    <td>R is case-sensitive. <code>Time_hr</code>, <code>time_hr</code> and
+        <code>TIME_HR</code> are three different names. Check with
+        <code>names(kinetics)</code>.</td></tr>
+<tr><td class="sym">unexpected symbol / unexpected input</td>
+    <td>Usually curly quotation marks from copying out of a document. Retype the
+        <code>"</code> characters by hand.</td></tr>
+<tr><td class="sym">Console shows <code>+</code> and seems stuck</td>
+    <td>Press <strong>Esc</strong>. An unclosed bracket or quotation mark.</td></tr>
+<tr><td class="sym">The plot is empty</td>
+    <td>The filter matched nothing. Check
+        <code>table(kinetics$Metric)</code> and <code>dim()</code> of the filtered
+        data.</td></tr>
+<tr><td class="sym">figure margins too large</td>
+    <td>The Plot pane is too small. Drag it larger and run the plot again.</td></tr>
+<tr><td class="sym">Red stop sign in the console corner</td>
+    <td>R is busy, not broken. Wait, or click it to interrupt.</td></tr>
+<tr><td class="sym">Installation paths not writeable</td>
+    <td>Harmless on Windows. Your package installed. Confirm with
+        <code>library(...)</code>. See Section 3.</td></tr>
+<tr><td class="sym">failed to lock directory / 00LOCK</td>
+    <td>Left over from an interrupted install. Restart R, then
+        <code>pacman::p_unlock()</code>. See Section 4.</td></tr>
+<tr><td class="sym">cannot open URL</td>
+    <td>Connection dropped. Reconnect and run the command again.</td></tr>
+<tr><td class="sym">A wall of <code>&lt;div&gt;</code> and <code>&lt;p&gt;</code> tags</td>
+    <td>The materials opened in a text editor. Right-click → Open with → your
+        browser.</td></tr>
+<tr><td class="sym">Nothing happens when you press Run</td>
+    <td>Your cursor is in the Console rather than the Script pane, or no line is
+        selected. <code>Ctrl</code>/<code>Cmd</code> + <code>Enter</code> runs the
+        current line.</td></tr>
+</table>
+
+<h2>7. Before you raise your hand</h2>
+
+<p>Not because asking is unwelcome — it is not — but because these three checks solve
+most problems faster than waiting, and working out the answer yourself is how the skill
+actually sticks.</p>
+
+<ol>
+  <li><strong>Read the error message.</strong> R's messages are terse but honest. The
+      words "not found", "cannot open", and "could not find function" each point at a
+      different problem.</li>
+  <li><strong>Run <code>getwd()</code>.</strong> If R is looking in the wrong folder,
+      several unrelated-looking errors all resolve at once.</li>
+  <li><strong>Check you ran the earlier chunks.</strong> Most "not found" errors are a
+      skipped step further up, not a mistake in the line you are on.</li>
+</ol>
+
+<p>If none of those helps, ask — and when you do, say what you typed and what the message
+said. That is usually enough to identify the problem immediately.</p>
+
+<div class="foot">
+<strong>Version 1.0 — 24 July 2026.</strong> Based on issues observed during Session 1,
+23 July 2026, together with the troubleshooting section of the workshop materials and
+official CRAN and Bioconductor documentation.<br>
+Corrections and additions are welcome — if you encounter something not covered here,
+please mention it so that the next version includes it.
+</div>
+
+</body>
+</html>
