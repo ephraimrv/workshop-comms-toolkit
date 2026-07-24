@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Housekeeping: Folder Organisation for Workshop 1</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; max-width: 640px;
+         margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.55; }
+  h1 { font-size: 1.3em; margin-bottom: 0.2em; }
+  h2 { font-size: 1.05em; margin-top: 1.6em; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  pre { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px;
+        font-size: 0.92em; overflow-x: auto; }
+  code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.92em; }
+  .step { background: #fbfaf5; border-left: 3px solid #d9c98a; padding: 8px 14px; margin: 10px 0; }
+  .note { color: #555; font-size: 0.92em; }
+</style>
+</head>
+<body>
+
+<h1>🧹 A Little Housekeeping: Where Your Files Live</h1>
+<p>Quick note before tomorrow's Session 1 — this takes two minutes and will save you a headache later.</p>
+
+<h2>Your folder, as delivered</h2>
+<pre>
+BSP_MMSU_2026_Workshop_1/
+├── BALO_Bacteriophage_Nonmolecular_data/
+│   ├── README_BSP_MMSU_Workshop_1.html
+│   ├── BSP_MMSU_Workshop1A_Nonmolecular_Dataset.R.html
+│   └── data/
+│       └── BALO_PHAGE_Kinetics_OD_CFU_PFU.csv
+│
+└── Soil_16S_V4_V5_Molecular_data/
+    ├── README_BSP_MMSU_Workshop_1.html
+    ├── Workshop1_Molecular_Biological_Dataset.html
+    ├── Workshop1_Molecular_Phyloseq.html
+    └── data/
+        ├── soil.otu.csv
+        ├── soil.tax.csv
+        ├── soil.tree.nwk
+        ├── soil_metadata.csv
+        ├── 926R-12_S11_L001_R1_001.fastq.gz
+        └── 926R-12_S11_L001_R2_001.fastq.gz
+</pre>
+<p><strong>Leave this structure exactly as it is.</strong> Don't rename folders, don't move the
+<code>data/</code> subfolders out, and don't merge the two datasets together — the two folders
+are deliberately separate (molecular vs. non-molecular).</p>
+
+<h2>One rule: where your own script goes</h2>
+<p>When you write your own R script for an exercise, save it <strong>inside the dataset folder
+you're working with</strong> — next to its <code>data/</code> subfolder, not inside it.
+For example, a script working with the soil dataset should sit directly inside
+<code>Soil_16S_V4_V5_Molecular_data/</code>, alongside the README and the other <code>.html</code>
+files.</p>
+
+<h2>The one step that makes this work on any computer</h2>
+<p>This is the part that matters, and it's the same on Windows and Mac — no need to hunt for
+your file path or type it out.</p>
+<div class="step">
+In RStudio, with your script open, go to<br>
+<strong>Session → Set Working Directory → To Source File Location</strong>
+</div>
+<p>That's it. From then on, in that session, you can load a file using a short relative path —
+for example:</p>
+<pre>soil_otu &lt;- read.csv("data/soil.otu.csv")</pre>
+<p>— and it will work whether your project folder sits on your Desktop, in Documents, or
+anywhere else, on either operating system.</p>
+
+<p class="note">A quick sanity check after doing this: run <code>getwd()</code>. It should print the
+path ending in the dataset folder you're currently working in (e.g.
+<code>.../Soil_16S_V4_V5_Molecular_data</code>). If it doesn't, the working directory didn't
+update — repeat the step above with the correct script tab active.</p>
+
+<p class="note">Optional, for later: once you're comfortable, look up RStudio Projects
+(<code>File → New Project</code>) and the <code>here</code> package — they remove the need to
+set the working directory by hand at all. Not needed for this workshop, but worth knowing it
+exists.</p>
+
+<hr style="margin-top:2em;border:none;border-top:1px solid #ddd;">
+<p class="note">
+Jan Ephraim R. Vallente<br>Research Assistant<br>
+BSP–MMSU Workshop Series · Programme Lead: Dr. Imelda L. Forteza<br>
+Balik Scientist Program · Mariano Marcos State University
+</p>
+<p class="note"><em>Issued 22 July 2026, ahead of Session 1. On the question of working
+directories this note is superseded by <strong>The R Survival Guide</strong> (24 July
+2026), which recommends an R Project as the primary method.</em></p>
+
+</body>
+</html>

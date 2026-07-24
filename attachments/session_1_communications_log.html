@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Participant Communications Log</title>
+<style>
+@page { size: A4; margin: 18mm; }
+body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 10.5pt;
+       line-height: 1.5; color: #1a1a1a; max-width: 760px; margin: 32px auto;
+       padding: 0 20px; }
+h1 { font-size: 17pt; margin: 0 0 4px 0; }
+.sub { color: #666; font-size: 9pt; }
+.byline { color: #666; font-size: 9pt; border-bottom: 2px solid #333;
+          padding-bottom: 12px; margin-bottom: 20px; }
+h2 { font-size: 12pt; margin: 26px 0 8px 0; padding-bottom: 4px;
+     border-bottom: 1.5px solid #333; }
+h3 { font-size: 11pt; margin: 22px 0 4px 0; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9.5pt; }
+th, td { border: 1px solid #ddd; padding: 5px 7px; text-align: left;
+         vertical-align: top; }
+th { background: #f4f4f4; font-size: 8.5pt; text-transform: uppercase;
+     letter-spacing: 0.4px; }
+pre { background: #f7f7f7; border: 1px solid #e0e0e0; border-left: 3px solid #999;
+      border-radius: 4px; padding: 12px 15px; font-size: 9pt; line-height: 1.45;
+      white-space: pre-wrap; word-wrap: break-word; font-family: inherit; }
+.meta { font-size: 9pt; color: #555; margin: 4px 0 8px 0; }
+.warn { background: #fdf3f2; border-left: 3px solid #c0392b; padding: 8px 13px;
+        margin: 8px 0; font-size: 9pt; }
+.ok { color: #2e8b57; font-size: 9pt; }
+.foot { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ccc;
+        font-size: 8.5pt; color: #555; }
+</style>
+</head>
+<body>
+<h1>Participant Communications Log</h1>
+<div class="sub">Record of all electronic communications issued to participants</div>
+<div class="byline">BSP–MMSU Workshop Series · Balik Scientist Program · Mariano Marcos State University<br>Programme Lead: Dr. Imelda L. Forteza<br>Document Owner: Jan Ephraim R. Vallente<br>Generated 24 July 2026</div>
+<h2>Summary</h2>
+<p>This record covers <strong>4</strong> campaign(s) comprising <strong>219</strong> individual message(s). Recipient addresses are held separately and are deliberately excluded from this document.</p>
+<table>
+<thead><tr><th>#</th><th>Date sent</th><th>Subject</th><th>Recipients</th><th>Attachments</th></tr></thead><tbody>
+<tr><td>1</td><td>21 July 2026, 9:27 PM</td><td>BSP MMSU R Workshop — please install R before July 23</td><td>30</td><td>&mdash;</td></tr>
+<tr><td>2</td><td>22 July 2026, 6:55 AM</td><td>Workshop 1 tomorrow — reply READY or HELP today</td><td>67</td><td>&mdash;</td></tr>
+<tr><td>3</td><td>22 July 2026, 11:00 AM</td><td>Certificates for the R Workshop Series — how they will be awarded</td><td>61</td><td>&mdash;</td></tr>
+<tr><td>4</td><td>22 July 2026, 8:15 PM</td><td>One last thing tonight before tomorrow&#x27;s workshop</td><td>61</td><td>Housekeeping_Folder_Guide.html</td></tr>
+</tbody></table>
+<h2>Verification</h2>
+<p class="ok">Every record was verified against its archived message body and sent log. Recipient counts agree with the logs in all cases.</p>
+<h2>Messages in full</h2>
+<h3>1. BSP MMSU R Workshop — please install R before July 23</h3>
+<div class="meta">Sent 21 July 2026, 9:27 PM &middot; 30 recipient(s) &middot; session: 1</div>
+<div class="meta">Instructions for downloading and installing R and RStudio, with the Google Drive link to the workshop datasets. Installation guidance corrected 24 July 2026; see README_RDownload v1.1.</div>
+<pre>Dear {Name},
+
+
+
+Thank you for registering for the Balik Scientist Program Workshop Series, &quot;Understanding Molecular and Biological Data Through R,&quot; with Dr. Imelda L. Forteza.
+
+WORKSHOP DETAILS
+
+Dates:  July 23, July 30, and August 6, 2026
+Time:   9:00 AM to 11:00 AM
+Venue:  Center for Flexible Learning, Mariano Marcos State University,
+        Batac City, Ilocos Norte 2906
+
+Please bring your laptop and its charger.
+
+PLEASE INSTALL BEFORE THE SESSION
+
+Each session runs for two hours, and we will begin working with the data straight away. Please complete the installation at home before July 23 -- there will not be time to install software during the session, and campus wifi will be slow with everyone downloading at once.
+
+Step 1. Install R first, then RStudio. The order matters, as RStudio needs R to already be present.
+
+  R:       https://cran.r-project.org/
+  RStudio: https://posit.co/download/rstudio-desktop/
+
+Step 2. Open RStudio, and paste the following into the Console panel (bottom left), one line at a time, pressing Enter after each:
+
+  install.packages(c(&quot;readr&quot;, &quot;dplyr&quot;, &quot;ape&quot;, &quot;ggplot2&quot;))
+  install.packages(&quot;BiocManager&quot;)
+  BiocManager::install(&quot;phyloseq&quot;)
+
+The last line installs a large package and may take 10 to 20 minutes. If you are asked whether to update other packages, answering &quot;n&quot; (no) is fine. Some red text during installation is normal and does not necessarily mean something has failed.
+
+Step 3. Confirm everything is ready by pasting this in and pressing Enter:
+
+  library(readr); library(dplyr); library(ape); library(ggplot2); library(phyloseq)
+
+If that produces no error message, you are set.
+
+WORKSHOP FILES
+
+Please download the datasets before the session as well:
+
+  https://drive.google.com/drive/folders/1YE5dAQdELyjc7rphk2rf9KpaamAcP25e?usp=drive_link
+
+The folder contains the datasets for both parts of Workshop 1, along with a README. The .html files can be opened in any web browser -- just double-click them.
+
+IF SOMETHING GOES WRONG
+
+If the installation fails, or you are unsure whether it worked, please message me by Wednesday evening, July 22, so we can sort it out before the session rather than during it. Screenshots of any error message are very helpful.
+
+  Jan Ephraim R. Vallente -- ephrvallente@gmail.com / +63-905-213-3981
+
+No prior programming experience is expected. If you have never used R before, that is entirely fine -- that is what the workshop is for.
+
+See you on July 23.
+
+
+
+Best regards,
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University</pre>
+<h3>2. Workshop 1 tomorrow — reply READY or HELP today</h3>
+<div class="meta">Sent 22 July 2026, 6:55 AM &middot; 67 recipient(s) &middot; session: 1</div>
+<div class="meta">Readiness check issued the day before Session 1, inviting participants to report installation problems in advance so they could be resolved before the session.</div>
+<pre>Dear {Name},
+
+This is a final reminder ahead of Workshop 1 tomorrow, Thursday, 23 July, 9:00 to 11:00 AM at the Center for Flexible Learning, MMSU Batac.
+
+PLEASE REPLY TO THIS EMAIL TODAY
+A one-word reply is all I need, before 5:00 PM today:
+
+  READY  -- R and RStudio are installed, the packages loaded without error,
+           and you have downloaded the workshop files.
+
+  HELP   -- anything did not work, or you are not sure whether it worked.
+
+Please reply either way. If I do not hear from you, I have no way of knowing whether you are set up, and I would rather sort out a problem tonight than tomorrow morning.
+
+
+WHY THIS MATTERS:
+Each session is two hours, and we begin working with the data at the start. Those two hours are for learning R -- they are not enough to also install software on individual laptops. If several participants arrive with an unfinished setup, the session slows down for everyone, including those who prepared. I would rather spend this evening on your installation than spend tomorrow&#x27;s session on it.
+
+IF YOU HAVE NOT STARTED YET:
+There is still time, but please begin now rather than tonight. The last step takes 10 to 20 minutes on a good connection.
+
+  1. Install R first, then RStudio:
+       https://cran.r-project.org/
+       https://posit.co/download/rstudio-desktop/
+
+  2. In the RStudio Console, one line at a time:
+       install.packages(c(&quot;readr&quot;, &quot;dplyr&quot;, &quot;ape&quot;, &quot;ggplot2&quot;))
+       install.packages(&quot;BiocManager&quot;)
+       BiocManager::install(&quot;phyloseq&quot;)
+
+  3. Check it worked:
+       library(readr); library(dplyr); library(ape); library(ggplot2); library(phyloseq)
+
+     No error message means you are ready. Red text during installation is
+     normal and does not by itself mean something failed -- if you are unsure,
+     send me a screenshot and I will tell you.
+
+  4. Download the workshop files:
+       https://drive.google.com/drive/folders/1YE5dAQdELyjc7rphk2rf9KpaamAcP25e?usp=drive_link
+
+Already installed and working? You do not need to update anything. Please leave your setup as it is.
+
+TOMORROW:
+Please arrive a few minutes before 9:00 AM and bring your laptop and charger. Have RStudio open and the workshop files already downloaded before we begin.
+If anything is unclear, message me tonight -- screenshots are very helpful.
+
+  Jan Ephraim R. Vallente -- ephrvallente@gmail.com / +63-905-213-3981
+
+No prior programming experience is expected. Being stuck on the installation is not a sign you are behind; it is the most common thing that happens, and it is exactly what tonight is for.
+
+
+See you tomorrow.
+
+Best regards,
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University</pre>
+<h3>3. Certificates for the R Workshop Series — how they will be awarded</h3>
+<div class="meta">Sent 22 July 2026, 11:00 AM &middot; 61 recipient(s) &middot; session: 1</div>
+<div class="meta">Announcement of the certificate tiers: one Certificate of Attendance per session attended, replaced by a single Certificate of Participation for attendance at all three. Certificates to be released after 6 August 2026.</div>
+<pre>Good day, everyone,
+
+Ahead of tomorrow&#x27;s first session, here is how certificates for &quot;Beyond What We See&quot; will be awarded, and one thing worth knowing before you decide which sessions to attend.
+
+CERTIFICATE MECHANICS
+
+• Attend one session — one Certificate of Attendance for that session.
+• Attend two sessions — two Certificates of Attendance, one for each.
+• Attend all three sessions — one Certificate of Participation covering the complete series.
+
+The Certificate of Participation replaces the individual Attendance certificates rather than adding to them. The distinction is worth understanding. A Certificate of Attendance records that you were present on a particular date. A Certificate of Participation certifies that you completed the program in full; six hours of structured training across three sessions. It is a statement about what you finished, not about where you were on a given morning, and it is the one you would want on a CV or a LinkedIn profile.
+
+If you are currently signed up for two of the three sessions, this is our reason for encouraging you to complete the series. The third session costs two more hours and changes what your certificate says about you.
+
+We should be honest about what a certificate is and is not. Six hours of R will not, by itself, open a door. What it can do is give you a defensible line on a CV and — more usefully — a skill you can actually demonstrate on your own data. The certificate is the receipt. The skill is the asset.
+
+HOW ATTENDANCE IS RECORDED
+An attendance sheet will be available at each session. Please sign it on arrival. The sheets are the sole basis for certificate eligibility, so an unsigned sheet means no record, regardless of whether you were in the room.
+
+HOW YOUR NAME WILL APPEAR
+After each session you will receive a short evaluation form. It asks for your name exactly as you wish it printed on your certificate, along with your email address. Please write it carefully, including any middle initial, suffix, or accented character. Where a participant submits more than once, the most recent submission will be used.
+
+WHEN CERTIFICATES WILL BE ISSUED
+Certificates will be prepared and released after 6 August 2026. They cannot be issued earlier, because the certificate a participant receives depends on how many sessions they ultimately attend, and that is only known once the series has concluded. We will confirm the release date closer to the time.
+
+If you need to change which sessions you are attending, please reply to this email so the roster stays accurate.
+
+We look forward to seeing you tomorrow, 23 July, 9:00–11:00 AM at the Center for Flexible Learning, MMSU Batac.
+
+
+Best regards,
+
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University</pre>
+<h3>4. One last thing tonight before tomorrow&#x27;s workshop</h3>
+<div class="meta">Sent 22 July 2026, 8:15 PM &middot; 61 recipient(s) &middot; session: 1</div>
+<div class="meta">Attachments: Housekeeping_Folder_Guide.html</div>
+<div class="meta">Pre-session folder orientation. Superseded on working-directory guidance by the R Survival Guide, 24 July 2026, which recommends an R Project rather than the Session menu.</div>
+<pre>Hi everyone,
+
+Thank you for your patience today with all the installation troubleshooting — everyone is now fully set up and ready for tomorrow.
+
+One small thing before we start Session 1: a bit of folder housekeeping. Nothing complicated, but sorting it out tonight means we spend tomorrow&#x27;s session on the actual analysis, not on file paths.
+
+I&#x27;ve attached a short one-pager covering:
+• the folder structure you already have (leave it as is — don&#x27;t rename or move anything)
+• where to save your own R scripts as you work
+• one RStudio setting that makes file paths &quot;just work&quot; on both Windows and Mac, so none of us have to figure out whose computer uses which path format
+
+Takes about two minutes to read. Please have a look before tomorrow — we&#x27;ll move faster if everyone&#x27;s folder is behaving the same way from the start.
+
+See you tomorrow, 9:00 AM at the Center for Flexible Learning, MMSU Batac.
+
+Jan Ephraim R. Vallente
+Research Assistant
+Balik Scientist Program Workshop Series
+Mariano Marcos State University</pre>
+<div class="foot">Generated by comms_report.py v1.0.0 from campaigns.jsonl. Recipient addresses are stored separately in per-campaign sent logs and are not reproduced here.</div>
+</body>
+</html>
