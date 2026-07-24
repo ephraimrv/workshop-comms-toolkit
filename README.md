@@ -15,11 +15,12 @@ These were built for the BSP–MMSU Workshop Series — a three-session R traini
 programme for biologists at Mariano Marcos State University, run under the
 Philippine Department of Science and Technology's Balik Scientist Program.
 
-The practical problem: sixty-one participants, several rounds of pre-session
-instructions, per-participant certificates to issue afterwards, and a funding
-body that requires a documented record of every communication sent. Doing that
-by hand is slow, and doing it by hand *twice* — once to send, once to write it
-up — is slower still.
+The practical problem: a roster of several dozen registrants, several rounds of
+pre-session instructions, and a funding body that requires a documented record
+of every communication sent. Attendance varies from session to session —
+registrants drop off, others join as walk-ins — so the eventual audience is not
+a fixed number known in advance. Doing the communications by hand is slow, and
+doing it by hand *twice* — once to send, once to write it up — is slower still.
 
 So the sending and the record-keeping were made the same operation.
 
