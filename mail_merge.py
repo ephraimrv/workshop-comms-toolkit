@@ -98,9 +98,10 @@ import time
 from email.message import EmailMessage
 from email.utils import parseaddr
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
 
 
-def guess_mime(path: Path) -> tuple[str, str]:
+def guess_mime(path: Path) -> Tuple[str, str]:
     """Return (maintype, subtype); unknown or encoded types fall back safely."""
     mime_type, encoding = mimetypes.guess_type(path)
     if mime_type is None or encoding is not None:
@@ -109,7 +110,7 @@ def guess_mime(path: Path) -> tuple[str, str]:
     return maintype, subtype
 
 
-def referenced_placeholders(template: str) -> set[str]:
+def referenced_placeholders(template: str) -> Set[str]:
     """Return every {field} name the template actually references."""
     return {
         field_name
@@ -118,7 +119,7 @@ def referenced_placeholders(template: str) -> set[str]:
     }
 
 
-def parse_attachment_list(raw: str, sep: str) -> list[str]:
+def parse_attachment_list(raw: str, sep: str) -> List[str]:
     """Split a roster cell into a clean list of filenames; drop empty entries."""
     return [part.strip() for part in raw.split(sep) if part.strip()]
 
@@ -127,7 +128,7 @@ EXTRA_FIELDS = "__extra__"
 MISSING_FIELD = "__missing__"
 
 
-def load_roster(roster: Path, email_col: str) -> tuple[list[dict[str, str]], list[str]]:
+def load_roster(roster: Path, email_col: str) -> Tuple[List[Dict[str, str]], List[str]]:
     """Read the roster, reporting every malformed row at once.
 
     utf-8-sig strips the BOM Google Sheets writes. Rows with too many or too
@@ -135,8 +136,8 @@ def load_roster(roster: Path, email_col: str) -> tuple[list[dict[str, str]], lis
     corrected in one pass rather than one error per re-run.
     """
     delimiter = "\t" if roster.suffix.lower() in {".tsv", ".tab"} else ","
-    problems: list[str] = []
-    rows: list[dict[str, str]] = []
+    problems: List[str] = []
+    rows: List[Dict[str, str]] = []
 
     with roster.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(
@@ -192,10 +193,10 @@ def build_message(
     recipient: str,
     subject: str,
     body: str,
-    attachments: list[Path],
-    display_names: list[str] | None = None,
-    cc: list[str] | None = None,
-    bcc: list[str] | None = None,
+    attachments: List[Path],
+    display_names: Optional[List[str]] = None,
+    cc: Optional[List[str]] = None,
+    bcc: Optional[List[str]] = None,
 ) -> EmailMessage:
     """Build one message with zero or more attachments for one recipient.
 
@@ -242,7 +243,7 @@ def build_copy_message(
     recipient: str,
     subject: str,
     template: str,
-    shared_attachments: list[Path],
+    shared_attachments: List[Path],
     count: int,
 ) -> EmailMessage:
     """Build the single summary copy sent to --copy-to.
