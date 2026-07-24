@@ -687,6 +687,25 @@ def main() -> None:
                     print(f"  [{progress}/{len(pending_idx)}] sent {to} ({names})")
                     if args.delay and progress < len(pending_idx):
                         time.sleep(args.delay)
+
+            if args.copy_to and sent_this_run:
+                try:
+                    smtp.send_message(
+                        build_copy_message(
+                            sender,
+                            args.copy_to,
+                            args.subject,
+                            template,
+                            args.attach,
+                            sent_this_run,
+                        )
+                    )
+                    print(f"  copy sent to {args.copy_to}")
+                except smtplib.SMTPException as exc:
+                    print(
+                        f"  WARNING: copy to {args.copy_to} failed: {exc}",
+                        file=sys.stderr,
+                    )
     except smtplib.SMTPAuthenticationError:
         sys.exit("Authentication failed. Check WORKSHOP_PASSWORD (Gmail app password).")
     except (OSError, smtplib.SMTPException) as e:
