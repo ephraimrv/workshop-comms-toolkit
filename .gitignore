@@ -1,1 +1,34 @@
+# --- Participant data: MUST NOT be published -------------------------------
+logs/
+*.sent.log
+sent.log
+roster*.csv
+roster*.tsv
+participants*.csv
+*_responses.csv
+
+# --- Credentials -----------------------------------------------------------
+.env
+*.env
+
+# --- Generated output ------------------------------------------------------
+Communications_Log*.html
+Communications_Log*.pdf
+
+# --- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# --- Editors and OS --------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- raw reads -------------------------------------------------------------
 *.fastq.gz
