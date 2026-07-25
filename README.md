@@ -38,6 +38,8 @@ Sends one personalised email per row of a CSV or TSV roster.
   be stored under safe ASCII serials while recipients see readable names
 - Every attachment verified to exist *before* the first message is sent
 - Resumable: addresses already recorded in the sent log are skipped
+- Optionally appends a one-line JSON record of each run to the campaign
+  manifest (`--manifest`), so the send and its documentation are one step
 - `--dry-run` validates the roster, placeholders and attachments without
   sending
 - Interactive confirmation before any real send
@@ -46,10 +48,12 @@ Sends one personalised email per row of a CSV or TSV roster.
 # always first
 python mail_merge.py -R roster.csv --email-col Username -b body.txt --dry-run
 
-# a real send, with one copy to the programme lead
+# a real send that also records itself in the manifest
 python mail_merge.py -R roster.csv --email-col Username \
     -b body.txt -s "Session 2 materials" \
     --sent-log logs/session2.log \
+    --manifest campaigns.jsonl \
+    --campaign-id session2-materials-2026-07-30 --session 2 \
     --copy-to lead@example.edu
 ```
 
@@ -61,11 +65,65 @@ verification section reconciling the manifest against the files it references.
 
 ```bash
 python comms_report.py -c campaigns.jsonl --check          # validate only
-python comms_report.py -c campaigns.jsonl -o Report.html   # render
+python comms_report.py -c campaigns.jsonl -o Report.html   # render everything
+python comms_report.py -c campaigns.jsonl -o S1.html --session 1   # one session
 ```
 
 `--check` exits non-zero when any record fails verification, so it can gate a
-build step.
+build step. Verification reconciles each recipient count against its sent log,
+confirms archived bodies and attachments exist, and warns when the date in a
+`campaign_id` disagrees with the date it was sent. Passing `--session N`
+restricts the report to one session (see [Manifest schema](#manifest-schema));
+omitting it renders the complete, cumulative record.
+
+---
+
+## Manifest schema
+
+`campaigns.jsonl` holds one JSON object per line. Each line records a single
+*run*, not a campaign (see [A manifest line describes a *run*, not a
+*campaign*](#a-manifest-line-describes-a-run-not-a-campaign) below for why).
+`comms_report.py` reconciles the fields below, and `mail_merge.py --manifest`
+emits them automatically.
+
+This section is the single authoritative definition of these fields. The tool
+docstrings and any notes point here rather than restate them.
+
+| Field | Meaning |
+|---|---|
+| `campaign_id` | Stable identifier, reused verbatim across resumed runs so they group into one campaign. Convention: `<slug>-YYYY-MM-DD`, where the date is the **send date**. `comms_report.py --check` warns when that date disagrees with `run_at`. |
+| `run_at` | ISO-8601 timestamp of the run. Legacy records may spell this `sent_at`. |
+| `sent_this_run` | Addresses this run sent; summed across runs for a campaign's total, and reconciled against the sent log. Legacy: `recipient_count`. |
+| `meta.session` | The workshop session the campaign concerns — defined below. Legacy records may carry a top-level `session`. |
+| `subject` | Subject line, as sent. |
+| `body_file` / `body_text` | Archived message text, by path or inline. |
+| `sent_log` | Path to the run's sent log; its non-blank line count must equal the campaign's summed `sent_this_run`. Empty or absent for a message sent by hand — the report then marks the count unverifiable rather than wrong. |
+| `attachments` / `shared_attachments` / `per_recipient_attachments` | Files sent to a single record, to everyone, or one per recipient. |
+| `failures` / `skipped_prior` / `status` | Run outcome: sends refused, addresses already sent in an earlier run, and whether the run completed or was interrupted. |
+| `notes` | Free-text record of anything notable about the run — including whether it was sent outside the tool. |
+
+### `session` — the one definition
+
+`session` identifies the workshop session a communication belongs to. In the
+ordinary case that is simply the session it is *about*, not the day it was sent:
+Session 1's installation reminders, its certificate announcement and its
+evaluation form are all `session: 1`, whichever day each goes out. The Session 1
+evaluation form, sent on 25 July for a workshop held on 23 July, is `session: 1`,
+because verifying the attendance sheet and preparing the form cannot happen on
+the day itself.
+
+A session's communications are treated as closed once its evaluation form has
+been sent; a message sent after that point belongs to the *next* session, even
+when it revisits earlier material. So the catch-up sent on 26 July to
+registrants who had missed the Session 1 setup emails is `session: 2` — Session
+1's cycle had already closed.
+
+`session` MUST NOT be read as the date sent, the sending batch or run, or a
+chronological index of campaigns.
+
+Canonical type is an integer (`1`, `2`, `3`); a quoted string (`"1"`) is
+accepted for backward compatibility but should not be written by hand. Filter a
+report to one session with `comms_report.py --session 1`.
 
 ---
 
@@ -143,7 +201,11 @@ is the seam between them.
 Early records were hand-written with `sent_at` and `recipient_count` before the
 run-oriented schema settled. Rather than force a rewrite of existing records,
 `normalise()` maps legacy field names to canonical ones at the single point
-where records enter the program. Old and new lines coexist in the same file.
+where records enter the program. Old and new lines coexist in the same file, and
+`mail_merge.py --manifest` writes the canonical spelling
+(`run_at`, `sent_this_run`, `meta.session`) so the legacy form is only ever read,
+never freshly written. The field list itself lives in
+[Manifest schema](#manifest-schema), not here.
 
 ### Everything fails before anything sends
 
@@ -175,6 +237,11 @@ JSON, missing required fields, non-ISO timestamps, empty and absent files —
 and against a manifest whose recipient count deliberately disagreed with its
 sent log.
 
+The `--manifest` emitter was exercised end to end against the same local
+server: a send appends one run record, and re-running the same `campaign_id`
+after adding a recipient produces a second run that `comms_report.py` groups
+into one campaign and reconciles against the sent log.
+
 There is no automated test suite yet. See Limitations.
 
 ---
@@ -203,10 +270,12 @@ Stated plainly, because they are the next things to fix.
   is no seam to inject a fake transport. Testing currently requires a live
   local server. Extracting the send loop into a function taking an
   already-connected SMTP object is the obvious next refactor.
-- **Manifest lines are written by hand.** A `--manifest` flag on
-  `mail_merge.py` would append them automatically. It was deliberately deferred
-  rather than built under deadline pressure, since it touches the send loop's
-  control flow.
+- **Communications sent outside the tool still need a manual line.**
+  `mail_merge.py --manifest` records everything sent through the tool
+  automatically. A message sent by hand — an individual email to a colleague,
+  say — must still have its manifest line written by hand, and is recorded with
+  an empty `sent_log`, which the report marks as unverifiable rather than
+  wrong.
 - **Plain-text bodies only.** No HTML multipart alternative.
 - **Gmail-oriented defaults.** Host and port are configurable, but the
   credential guidance assumes an app password.
