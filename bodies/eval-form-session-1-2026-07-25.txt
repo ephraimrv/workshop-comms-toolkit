@@ -1,0 +1,16 @@
+Hi {Name},
+
+Thank you for joining the first session of "Understanding Molecular and Biological Data Through R" last Thursday. It was a pleasure working through the setup and the first exercises with you, and I hope you left with a working R environment and a little more confidence at the console.
+
+We'd be grateful for your feedback. It takes only a few minutes and directly shapes how we run the next two sessions:
+
+https://forms.gle/psyTuhWDWgudLk438
+
+Please use the email address you'd like kept on record, and enter your name exactly as you'd like it recorded. Completing it before the next session on Thursday, 30 July helps us count your response with Session 1.
+
+See you on the 30th.
+
+Warm regards,
+Jan Ephraim R. Vallente
+Research Assistant, R Workshop Series
+(Dr. Imelda L. Forteza, Program Lead)
