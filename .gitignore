@@ -1,5 +1,6 @@
 # --- Participant data: MUST NOT be published -------------------------------
 logs/
+bodies/
 *.sent.log
 sent.log
 roster*.csv
