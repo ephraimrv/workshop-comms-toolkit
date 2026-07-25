@@ -21,6 +21,8 @@ Features
 * Requires interactive confirmation before a real send
   (skip with ``--yes``).
 * Uses SSL by default for secure SMTP communication.
+* Optionally appends a one-line JSON record of the run to a manifest
+  (``--manifest``), for later reporting by ``comms_report.py``.
 
 Environment Variables
 ---------------------
@@ -80,13 +82,26 @@ Use friendly attachment names while keeping safe filenames on disk::
         --attachment-dir certificates \
         --attachment-name-col attachment_display \
         -b body.txt
+
+Send and record the run in the campaign manifest read by comms_report.py::
+
+    python mail_merge.py \
+        -R participants.csv \
+        --email-col Username \
+        -b body.txt \
+        -s "Session 2 materials" \
+        --sent-log logs/session2.log \
+        --manifest campaigns.jsonl \
+        --campaign-id session2-materials-2026-07-30 \
+        --session 2
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 import argparse
 import csv
+import json
 import mimetypes
 import os
 import smtplib
@@ -95,6 +110,7 @@ import string
 import sys
 import textwrap
 import time
+from datetime import datetime
 from email.message import EmailMessage
 from email.utils import parseaddr
 from pathlib import Path
@@ -269,6 +285,73 @@ def build_copy_message(
     return msg
 
 
+def build_manifest_record(
+    *,
+    campaign_id: str,
+    run_at: str,
+    subject: str,
+    sent_log: Path,
+    sent_this_run: int,
+    failures: int,
+    skipped_prior: int,
+    status: str,
+    body_file: Optional[Path],
+    body_text: Optional[str],
+    shared_attachments: List[Path],
+    per_recipient_dir: Optional[Path],
+    per_recipient_count: int,
+    session: Optional[int],
+    notes: str,
+) -> dict:
+    """Return one JSONL manifest record describing a single send run.
+
+    The record uses the run-oriented canonical schema read by
+    ``comms_report.py`` (``run_at``, ``sent_this_run``, ``meta.session``), not
+    the legacy hand-written spelling. ``sent_this_run`` is the number of
+    addresses this run appended to the sent log, so a report's recipient-count
+    verification holds by construction rather than by hand-transcription.
+
+    Only fields with content are emitted, keeping each line compact; the
+    reader supplies defaults for anything absent.
+    """
+    record: dict = {
+        "campaign_id": campaign_id,
+        "run_at": run_at,
+    }
+    if session is not None:
+        record["meta"] = {"session": session}
+    record["subject"] = subject
+    if body_file is not None:
+        record["body_file"] = str(body_file)
+    elif body_text is not None:
+        record["body_text"] = body_text
+    record["sent_log"] = str(sent_log)
+    record["sent_this_run"] = sent_this_run
+    record["failures"] = failures
+    record["skipped_prior"] = skipped_prior
+    record["status"] = status
+    if shared_attachments:
+        record["shared_attachments"] = [str(p) for p in shared_attachments]
+    if per_recipient_dir is not None and per_recipient_count:
+        record["per_recipient_attachments"] = {
+            "dir": str(per_recipient_dir),
+            "count": per_recipient_count,
+        }
+    if notes:
+        record["notes"] = notes
+    return record
+
+
+def append_jsonl(path: Path, record: dict) -> None:
+    """Append one record to a JSONL file as a single physical line.
+
+    ensure_ascii is disabled so accented names and em dashes are stored
+    literally in the UTF-8 file rather than as escape sequences.
+    """
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
 def parse_args() -> argparse.Namespace:
     """Build and parse the command-line interface."""
     p = argparse.ArgumentParser(
@@ -421,6 +504,39 @@ def parse_args() -> argparse.Namespace:
         "per campaign.",
     )
     p.add_argument(
+        "--manifest",
+        type=Path,
+        default=None,
+        metavar="FILE",
+        help="Append a one-line JSON record of this run to FILE (JSONL), "
+        "for comms_report.py. Requires --campaign-id. Nothing is written "
+        "on a --dry-run or when no message is sent.",
+    )
+    p.add_argument(
+        "--campaign-id",
+        default=None,
+        metavar="ID",
+        help="Stable identifier for this campaign, reused verbatim across "
+        "resumed runs so the report groups them into one campaign. "
+        "Convention: <slug>-YYYY-MM-DD, where the date is the send date. "
+        "Required when --manifest is given.",
+    )
+    p.add_argument(
+        "--session",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Workshop session this campaign concerns (integer), recorded as "
+        "meta.session in the manifest. This is the session communicated "
+        "ABOUT, not the date sent.",
+    )
+    p.add_argument(
+        "--notes",
+        default="",
+        metavar="TEXT",
+        help="Free-text note recorded with the manifest entry.",
+    )
+    p.add_argument(
         "--dry-run",
         action="store_true",
         help="Validate the roster, placeholders and attachments, "
@@ -463,6 +579,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+
+    if args.manifest and not args.campaign_id:
+        sys.exit("Error: --campaign-id is required when --manifest is given.")
 
     if args.body_file:
         if not args.body_file.is_file():
@@ -644,7 +763,47 @@ def main() -> None:
 
     failures = 0
     sent_this_run = 0
+    sent_indices: list[int] = []
+    run_started_at = datetime.now().astimezone()
     started = time.perf_counter()
+
+    def record_run(status: str) -> None:
+        """Append this run to the manifest, if one was requested.
+
+        Called on normal completion and on a mid-run transport abort, so a
+        partially completed run is still recorded. Because per-recipient
+        counts are summed only over addresses that actually sent, and
+        sent_this_run is the exact number of lines this run wrote to the sent
+        log, the emitted record reconciles with the log by construction.
+        """
+        if not args.manifest or not (sent_this_run or failures):
+            return
+        per_recipient_count = sum(
+            len(resolved[i]) - len(args.attach) for i in sent_indices
+        )
+        record = build_manifest_record(
+            campaign_id=args.campaign_id,
+            run_at=run_started_at.isoformat(),
+            subject=args.subject,
+            sent_log=args.sent_log,
+            sent_this_run=sent_this_run,
+            failures=failures,
+            skipped_prior=len(already_sent),
+            status=status,
+            body_file=args.body_file,
+            body_text=None if args.body_file else template,
+            shared_attachments=args.attach,
+            per_recipient_dir=args.attachment_dir if has_attachment_col else None,
+            per_recipient_count=per_recipient_count,
+            session=args.session,
+            notes=args.notes,
+        )
+        append_jsonl(args.manifest, record)
+        print(
+            f"Manifest entry appended to {args.manifest} "
+            f"(campaign {args.campaign_id!r}, status {status!r})."
+        )
+
     try:
         if args.no_ssl:
             smtp = smtplib.SMTP(args.host, args.port, timeout=30)
@@ -684,6 +843,7 @@ def main() -> None:
                     log.write(f"{to.lower()}\n")
                     log.flush()
                     sent_this_run += 1
+                    sent_indices.append(i)
                     names = ", ".join(shown[i]) or "(no attachments)"
                     print(f"  [{progress}/{len(pending_idx)}] sent {to} ({names})")
                     if args.delay and progress < len(pending_idx):
@@ -710,6 +870,7 @@ def main() -> None:
     except smtplib.SMTPAuthenticationError:
         sys.exit("Authentication failed. Check WORKSHOP_PASSWORD (Gmail app password).")
     except (OSError, smtplib.SMTPException) as e:
+        record_run("interrupted")
         sys.exit(
             f"Connection/transport failure after {sent_this_run} sent this "
             f"run ({len(pending_idx) - sent_this_run} not attempted). "
@@ -723,6 +884,9 @@ def main() -> None:
     print(f"Skipped (prior)   : {len(already_sent)}")
     print(f"Duration          : {elapsed:.1f} seconds")
     print("-" * 40)
+
+    record_run("complete")
+
     if failures:
         sys.exit(f"Completed with {failures} failure(s).")
 
