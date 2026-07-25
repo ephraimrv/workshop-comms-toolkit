@@ -347,7 +347,22 @@ def append_jsonl(path: Path, record: dict) -> None:
 
     ensure_ascii is disabled so accented names and em dashes are stored
     literally in the UTF-8 file rather than as escape sequences.
+
+    JSONL's one-object-per-line contract depends on every existing line
+    already ending in a newline. A hand-edited manifest (a record pasted in
+    directly, as opposed to written by this function) can leave the file
+    without one, in which case a plain append would land the new record on
+    the same physical line as the old one, corrupting both. If the file
+    exists, is non-empty, and does not end in a newline, one is written
+    first so the new record always starts its own line.
     """
+    if path.is_file() and path.stat().st_size > 0:
+        with path.open("rb") as fh:
+            fh.seek(-1, 2)
+            needs_newline = fh.read(1) != b"\n"
+        if needs_newline:
+            with path.open("a", encoding="utf-8") as fh:
+                fh.write("\n")
     with path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
