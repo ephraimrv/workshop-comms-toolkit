@@ -32,10 +32,15 @@ Check the manifest without writing anything::
 Render without the full message bodies, for a summary-only version::
 
     python comms_report.py -c campaigns.jsonl -o Summary.html --no-bodies
+
+Render only the communications belonging to one session, leaving the default
+(no ``--session``) to produce the complete, cumulative record::
+
+    python comms_report.py -c campaigns.jsonl -o Session1_Log.html --session 1
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 import argparse
 import html
@@ -281,6 +286,7 @@ def render(
     lead: str,
     programme: str,
     include_bodies: bool,
+    session: str | None = None,
 ) -> str:
     """Render the full report as a standalone HTML document."""
     e = html.escape
@@ -315,6 +321,12 @@ def render(
         f"Recipient addresses are held separately and are deliberately excluded "
         f"from this document.</p>"
     )
+    if session is not None:
+        out.append(
+            f"<p><strong>Scope:</strong> this report includes only communications "
+            f"belonging to Session {e(session)}; it is not the complete, "
+            f"cumulative record.</p>"
+        )
 
     out.append("<table>")
     out.append(
@@ -444,6 +456,13 @@ def parse_args() -> argparse.Namespace:
         help="Programme line for the header.",
     )
     p.add_argument(
+        "--session",
+        metavar="ID",
+        help="Include only campaigns tagged with this session id (compared "
+        "against meta.session). Omit to render the complete, cumulative "
+        "record.",
+    )
+    p.add_argument(
         "--no-bodies",
         action="store_true",
         help="Omit full message texts; render the summary only.",
@@ -465,10 +484,29 @@ def main() -> None:
     except (OSError, ValueError) as exc:
         sys.exit(f"Error: {exc}")
 
+    if args.session is not None:
+        present = sorted(
+            {
+                str(r["meta"]["session"])
+                for r in records
+                if r["meta"].get("session") is not None
+            }
+        )
+        records = [
+            r for r in records if str(r["meta"].get("session")) == args.session
+        ]
+        if not records:
+            sys.exit(
+                f"Error: no campaigns match --session {args.session} "
+                f"(sessions present: {', '.join(present) or 'none'})."
+            )
+
     base = args.base_dir or args.campaigns.resolve().parent
     campaigns = group_runs(records)
 
     print(f"Manifest : {args.campaigns}")
+    if args.session is not None:
+        print(f"Filter   : session == {args.session}")
     print(f"Runs     : {len(records)}  ->  campaigns: {len(campaigns)}")
     print(f"Messages : {sum(c['total_sent'] for c in campaigns)}")
 
@@ -498,6 +536,7 @@ def main() -> None:
         args.lead,
         args.programme,
         include_bodies=not args.no_bodies,
+        session=args.session,
     )
     try:
         args.output.write_text(document, encoding="utf-8")
