@@ -40,15 +40,19 @@ Render only the communications belonging to one session, leaving the default
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 import argparse
 import html
 import json
+import re
 import sys
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+
+# A campaign_id conventionally ends in its send date, e.g. housekeeping-2026-07-22.
+ID_TRAILING_DATE = re.compile(r"(\d{4}-\d{2}-\d{2})$")
 
 # Fields accepted under either name, mapped to the canonical name used here.
 ALIASES = {
@@ -195,9 +199,35 @@ def group_runs(records: list[dict]) -> list[dict]:
     return campaigns
 
 
+def id_trailing_date(campaign_id: str) -> str | None:
+    """Return the YYYY-MM-DD a campaign_id ends with, or None.
+
+    None means either the id carries no trailing date (the convention is not
+    enforced) or the trailing digits are not a real calendar date; in both
+    cases there is nothing to reconcile and no warning is raised.
+    """
+    match = ID_TRAILING_DATE.search(campaign_id)
+    if not match:
+        return None
+    try:
+        return date.fromisoformat(match.group(1)).isoformat()
+    except ValueError:
+        return None
+
+
 def verify(campaign: dict, base: Path) -> list[str]:
     """Return a list of human-readable discrepancies for one campaign."""
     warnings: list[str] = []
+
+    id_date = id_trailing_date(campaign["campaign_id"])
+    if id_date is not None:
+        run_date = datetime.fromisoformat(campaign["run_at"]).date().isoformat()
+        if id_date != run_date:
+            warnings.append(
+                f"date mismatch: campaign_id ends {id_date} but the campaign's "
+                f"first run is dated {run_date}. The id convention is "
+                f"<slug>-YYYY-MM-DD, where the date is the send date."
+            )
 
     body_file = campaign.get("body_file")
     if body_file:
