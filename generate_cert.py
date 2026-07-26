@@ -97,7 +97,6 @@ __version__ = "0.1.0"
 import csv
 import io
 import sys
-import unicodedata
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -105,6 +104,8 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+
+from roster_checks import clean_name, likely_domain_typo, structurally_valid_email
 
 PAGE_W, PAGE_H = 841.92, 595.2
 NAME_SIZE = 36.0
@@ -118,11 +119,6 @@ TIERS = {
     "attendance": ("A", "Attendance"),
     "participation": ("P", "Participation"),
 }
-
-
-def clean_name(raw: str) -> str:
-    """Strip surrounding whitespace and normalise to NFC. Case is preserved."""
-    return unicodedata.normalize("NFC", raw.strip())
 
 
 def fitted_size(text: str, max_w: float, start: float = NAME_SIZE) -> float:
@@ -178,8 +174,15 @@ def load_roster(path: Path, name_col: str, email_col: str, tier_col: str):
             if not name:
                 problems.append(f"line {lineno}: empty name")
                 continue
-            if email.count("@") != 1 or " " in email:
-                problems.append(f"line {lineno}: suspicious email {email!r}")
+            if not structurally_valid_email(email):
+                problems.append(f"line {lineno}: malformed email {email!r}")
+                continue
+            typo_suggestion = likely_domain_typo(email)
+            if typo_suggestion:
+                problems.append(
+                    f"line {lineno}: {email!r} looks like a typo of "
+                    f"...@{typo_suggestion} -- fix in the source, not here"
+                )
                 continue
             if tier not in TIERS:
                 problems.append(f"line {lineno}: tier {tier!r} not in {sorted(TIERS)}")
