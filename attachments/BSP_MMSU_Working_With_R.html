@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BSP–MMSU Workshop Series — Working With R</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 10pt;
+         line-height: 1.45; color: #1a1a1a; max-width: 720px; margin: 30px auto; padding: 0 18px; }
+  h1 { font-size: 16pt; margin: 0 0 3px 0; }
+  .sub { color: #666; font-size: 8.5pt; margin-bottom: 4px; }
+  .byline { color: #666; font-size: 8.5pt; border-bottom: 2px solid #333;
+            padding-bottom: 10px; margin-bottom: 16px; }
+  h2 { font-size: 11.5pt; margin: 22px 0 6px 0; padding-bottom: 3px;
+       border-bottom: 1.5px solid #333; }
+  h3 { font-size: 10pt; margin: 14px 0 4px 0; color: #222; }
+  code { font-family: "SF Mono", Consolas, monospace; font-size: 9pt;
+         background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; border-left: 3px solid #999;
+        border-radius: 4px; padding: 9px 13px; font-size: 8.8pt; overflow-x: auto;
+        line-height: 1.4; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+  td, th { vertical-align: top; padding: 4px 6px; border-bottom: 1px solid #e2e2e2;
+           text-align: left; }
+  th { background: #f4f4f4; font-size: 8.5pt; text-transform: uppercase;
+       letter-spacing: 0.4px; }
+  td.sym { width: 42%; font-family: "SF Mono", Consolas, monospace; font-size: 8.6pt; }
+  .box { border-left: 3px solid #c9a227; background: #fdfaf0; padding: 9px 14px;
+         margin: 12px 0; }
+  .box.stop { border-left-color: #c0392b; background: #fdf3f2; }
+  .box.go { border-left-color: #2e8b57; background: #f2faf5; }
+  .lbl { font-weight: 600; font-size: 8.5pt; text-transform: uppercase;
+         letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+  .yes { color: #2e8b57; font-weight: 600; }
+  .no { color: #c0392b; font-weight: 600; }
+  ul { margin: 5px 0 5px 0; padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  .foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc;
+          font-size: 8.5pt; color: #555; }
+  .toc { background: #f7f7f7; border: 1px solid #e0e0e0; border-radius: 5px;
+         padding: 10px 16px; font-size: 9pt; }
+  .toc ol { margin: 4px 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1>Working With R</h1>
+<div class="sub">Understanding the tool, and pointing it at your own data</div>
+<div class="byline">
+BSP–MMSU Workshop Series · Understanding Biological Data Through R<br>
+Balik Scientist Program · Mariano Marcos State University<br>
+BSP Fellow: Dr. Imelda L. Forteza<br>
+Author: Jan Ephraim R. Vallente, Research Assistant
+</div>
+
+<p>The <em>R Survival Guide</em> handed out after Session 1 answers the question
+<strong>"I am stuck — what do I do?"</strong> This companion answers the question
+underneath it: <strong>how does R actually think, and how do I use it on my own
+research rather than only on files someone else prepared for me?</strong></p>
+
+<p>Several of you wrote on the evaluation form that you were not sure R applies to your
+own study. This document is largely an answer to that. It does not repeat the Survival
+Guide; where the two touch, it points you there rather than saying the same thing twice.</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li>From your data to R's data — the part nobody showed you</li>
+  <li>Loading packages without typing <code>library</code> ten times</li>
+  <li>Three different ways to "clear" — and which one you actually want</li>
+  <li>Presenting your code in a thesis or poster: which font, and why</li>
+  <li>Small things worth knowing</li>
+</ol>
+</div>
+
+<h2>1. From your data to R's data — the part nobody showed you</h2>
+
+<p>In Session 1 you were handed finished files: <code>soil.otu.csv</code>,
+<code>kinetics</code>, a <code>.nwk</code> tree. That is why R can feel like a tool that
+only works on data someone else has already prepared. The missing step is simple, and
+once you have it, R applies to <em>your</em> research directly.</p>
+
+<h3>Your spreadsheet is already almost a CSV</h3>
+<p>Your data almost certainly lives in Excel, Google Sheets, or Numbers — or in a table
+typed into Word. A <code>.csv</code> file (comma-separated values) is nothing more than
+that same table saved as plain text. You do not need special software to make one; the
+program you already use exports it:</p>
+
+<table>
+<tr><th style="width:28%">If your data is in</th><th>Do this</th></tr>
+<tr><td>Microsoft Excel</td><td>File → Save As → choose <strong>CSV (Comma delimited) (*.csv)</strong></td></tr>
+<tr><td>Google Sheets</td><td>File → Download → <strong>Comma-separated values (.csv)</strong></td></tr>
+<tr><td>Apple Numbers</td><td>File → Export To → <strong>CSV…</strong></td></tr>
+<tr><td>A table in Word</td><td>First rebuild it in a spreadsheet (see below), then export. A Word table is not data R can read.</td></tr>
+</table>
+
+<p>A CSV opened in a text editor is completely readable — it is just your table with
+commas between the cells:</p>
+<pre>sample_id,site,replicate,od600
+S01,Anembo,1,0.42
+S02,Anembo,2,0.51
+S03,Badja,1,0.39
+S04,Badja,2,0.47</pre>
+
+<p>R reads it in one line, and can immediately answer a question about it:</p>
+<pre>d &lt;- read.csv("mydata.csv")
+tapply(d$od600, d$site, mean)</pre>
+<pre>Anembo  Badja
+ 0.465  0.430</pre>
+<p>That is your own data, your own question, answered by R. Nothing about it required a
+sequencing facility or a pre-made file.</p>
+
+<div class="box go">
+<span class="lbl">Why CSV, and not the Excel file directly</span>
+R <em>can</em> read <code>.xlsx</code> files with an extra package, but CSV is worth
+preferring: it is plain text, so it opens on any computer, survives email and old
+machines, never depends on which version of Excel you have, and you can see exactly what
+is in it. It is the format every data tool in the world agrees on.
+</div>
+
+<h3>The one idea that makes data "R-ready": tidy data</h3>
+<p>R works best when a table follows three rules. Together these are called
+<strong>tidy data</strong>:</p>
+<ul>
+  <li><strong>One row per observation</strong> — one measurement, one row.</li>
+  <li><strong>One column per variable</strong> — site, replicate, and reading each get
+      their own column.</li>
+  <li><strong>One value per cell</strong> — a number in a cell is a number, not
+      <code>0.42 OD</code> with the unit typed in beside it.</li>
+</ul>
+
+<p>The reason some data does not "work in R" is that it was entered a different way. A
+common layout typed straight into Word looks like this:</p>
+<pre>            Anembo        Badja
+  rep1      0.42 OD       0.39 OD
+  rep2      0.51 OD       0.47 OD</pre>
+<p>This is readable to a person but hostile to R: there is no single <em>site</em>
+column, no <em>replicate</em> column, and <code>0.42 OD</code> is text, not a number R
+can average. The very same measurements, entered tidily, are the four clean rows shown
+earlier — and those just worked.</p>
+
+<div class="box stop">
+<span class="lbl">Data-entry habits that quietly break R — fix them at the spreadsheet</span>
+Every one of these is easier to avoid when typing than to repair afterwards:
+<ul>
+  <li><strong>Merged cells</strong> — R has no concept of a merged cell; it sees blanks.</li>
+  <li><strong>Colour as meaning</strong> — a highlighted cell means nothing to R. If a
+      value matters, put it in a column.</li>
+  <li><strong>Units inside the cell</strong> — write <code>5</code>, and add a separate
+      units column or note. Not <code>5 mg</code>.</li>
+  <li><strong>Several ways of writing "missing"</strong> — pick one. Blank,
+      <code>NA</code>, <code>N/A</code> and <code>-</code> are four different things to R.</li>
+  <li><strong>Inconsistent capitalisation</strong> — this is the subtle one, see below.</li>
+</ul>
+</div>
+
+<h3>Capitalisation is data too</h3>
+<p>R is case-sensitive, and so are sample names. In the soil dataset from Session 1, the
+sample list included <code>Soil72</code>, <code>SOIL72</code>, and <code>SOIL82</code>.
+To R those are <strong>three different samples</strong>. If two of them were meant to be
+the same sample typed inconsistently, that single slip silently splits one sample into
+two and quietly changes your results. Decide on one spelling convention for your labels
+and hold to it — this is won at the keyboard, before R ever runs.</p>
+
+<h2>2. Loading packages without typing <code>library</code> ten times</h2>
+
+<p>You already know from the Survival Guide that installing a package is done once per
+computer, and loading it with <code>library()</code> must be done once per session. When
+an analysis needs several packages, that becomes a stack of near-identical lines:</p>
+<pre>library(ape)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(phyloseq)</pre>
+
+<p>There is a shorter way. Put the names in a vector and load them all at once:</p>
+<pre>pkgs &lt;- c("ape", "dplyr", "ggplot2", "readr", "phyloseq")
+lapply(pkgs, library, character.only = TRUE)</pre>
+
+<p><code>lapply</code> takes each name in <code>pkgs</code> and calls
+<code>library</code> on it. One line replaces five, and adding a package later means
+adding one word to the vector.</p>
+
+<h3>Two things about that line worth understanding</h3>
+
+<p><strong>Why it prints a wall of names.</strong> After running it you will see several
+blocks like this:</p>
+<pre>[[1]]
+[1] "dplyr"     "ape"       "stats"     "graphics"
+[5] "grDevices" "utils"     "datasets"  "methods"
+[9] "base"
+[[2]]
+...</pre>
+<p>That is not an error. Each time <code>library()</code> succeeds it quietly hands back
+the current list of loaded packages; normally you never see it, but <code>lapply</code>
+collects those answers and prints them. To silence it, wrap the call:</p>
+<pre>invisible(lapply(pkgs, library, character.only = TRUE))</pre>
+
+<p><strong>Why <code>character.only = TRUE</code> is not optional.</strong> Normally you
+write <code>library(dplyr)</code> with no quotes — R accepts the bare word. But here the
+package name arrives as text inside a variable. Without that argument, R takes the
+variable's <em>name</em> literally instead of its value:</p>
+<pre>p &lt;- "stats"
+library(p)</pre>
+<pre>Error: there is no package called 'p'</pre>
+<p>R looked for a package literally called <code>p</code>. Adding
+<code>character.only = TRUE</code> tells R "treat this as a string, look up its value" —
+and it works. This is the piece that breaks for people who copy the line and adapt it
+without knowing why the argument is there.</p>
+
+<div class="box">
+<span class="lbl">A plainer alternative, and when to prefer it</span>
+A simple loop does the same job and is arguably clearer:
+<pre style="margin:6px 0;background:#fff;">for (p in pkgs) library(p, character.only = TRUE)</pre>
+Its advantage: if one package fails to load, the loop makes it obvious which one, because
+it stops on that name. The <code>lapply</code> version is more compact; the loop is
+easier to debug. Either is a reasonable choice — knowing both, and why you picked one,
+is the point.
+</div>
+
+<h2>3. Three different ways to "clear" — and which one you actually want</h2>
+
+<p>"Clear," "reset," and "start fresh" get used interchangeably, but in RStudio they are
+three separate actions that clear three different things. Confusing them is why an
+analysis sometimes "still works" when it shouldn't, or "stops working" for no visible
+reason.</p>
+
+<table>
+<tr><th style="width:34%">Action</th><th style="width:26%">How</th><th>What it clears · what survives</th></tr>
+<tr>
+  <td>Clear the console display</td>
+  <td class="sym">Ctrl + L</td>
+  <td>Wipes the text on screen only. Every object and every loaded package is
+      <strong>still there.</strong> Purely cosmetic.</td>
+</tr>
+<tr>
+  <td>Remove your objects</td>
+  <td class="sym">rm(list = ls())</td>
+  <td>Deletes the variables you created. Loaded packages and the console text
+      <strong>remain.</strong></td>
+</tr>
+<tr>
+  <td><strong>Restart R</strong></td>
+  <td class="sym">Ctrl + Shift + F10<br>(Session → Restart R)</td>
+  <td>The real clean slate: objects gone, packages unloaded, session state reset. This is
+      the only one that truly starts fresh.</td>
+</tr>
+</table>
+
+<p>On a Mac, use <strong>Cmd</strong> in place of Ctrl — <code>Cmd + Shift + F10</code>
+to restart. Note that <code>Ctrl + L</code> looks like a reset but changes nothing except
+what you can see; and <code>rm(list = ls())</code> empties your variables but leaves every
+package loaded. Only a restart does both.</p>
+
+<div class="box go">
+<span class="lbl">The habit this unlocks: restart and re-run, often</span>
+Restarting R, then running your script from the top, is the single best way to trust your
+own analysis. If it only works because of some object you made by hand an hour ago and
+forgot, a restart exposes it at once. A script that survives a fresh restart is a script
+you can defend to a thesis panel. Reproducibility is not an extra chore — it is what
+makes the result yours to stand behind.
+</div>
+
+<h3>Enter vs Ctrl+Enter — the same idea, two panes</h3>
+<p>This trips people because the same key does different things depending on where the
+cursor is:</p>
+<ul>
+  <li><strong>In the Console</strong> (bottom pane), <code>Enter</code> runs the line
+      immediately.</li>
+  <li><strong>In the Source editor</strong> (a script, top pane), <code>Enter</code> just
+      starts a new line. To run the current line and move on, press
+      <strong>Ctrl+Enter</strong> (<strong>Cmd+Enter</strong> on Mac).</li>
+</ul>
+<p>That is the whole of the "I pressed Enter in my script and nothing happened" mystery.
+The Survival Guide notes the fix in its decoder; the reason is simply that a script is a
+document you are editing, and Ctrl+Enter is how you say "now run this line."</p>
+
+<h2>4. Presenting your code in a thesis or poster: which font, and why</h2>
+
+<p>When you show code in a document — a methods section, a poster, a slide — the font
+matters, and it is a different font from the one your prose uses. Your university
+prescribes Times New Roman for the body of a thesis, and that is entirely correct for
+<em>narrative text</em>. Code is the exception, for a concrete reason.</p>
+
+<h3>Prose fonts vs code fonts</h3>
+<p>Times New Roman is a <strong>proportional</strong> font: a narrow <code>i</code> takes
+less width than a wide <code>m</code>. That is what makes prose comfortable to read. But
+in code, alignment carries meaning — indentation, columns of printed output, the
+<code>+</code> continuation prompt, an error message's <code>^</code> pointing at exactly
+one character. In a proportional font those stop lining up. Code needs a
+<strong>monospace</strong> (fixed-width) font, where every character occupies the same
+width:</p>
+
+<table>
+<tr><th style="width:50%">Proportional (for prose)</th><th>Monospace (for code)</th></tr>
+<tr>
+  <td>Times New Roman, Calibri, Arial — comfortable to read in paragraphs, wrong for
+      code because characters do not align.</td>
+  <td>Consolas, Cascadia Mono, Source Code Pro — every character the same width, so
+      indentation and output columns line up.</td>
+</tr>
+</table>
+
+<div class="box go">
+<span class="lbl">Safe, free monospace fonts you already have or can get</span>
+<ul>
+  <li><strong>Consolas</strong> — ships with Windows and Microsoft Office, so it embeds
+      into Word cleanly and needs no installing. The easiest default for most of you.</li>
+  <li><strong>Cascadia Mono</strong> — free from Microsoft, ships with newer Windows.</li>
+  <li><strong>Menlo</strong> or <strong>SF Mono</strong> — free, already on every Mac.</li>
+  <li><strong>Source Code Pro</strong>, <strong>JetBrains Mono</strong>,
+      <strong>IBM Plex Mono</strong> — free downloads if you want a specific look.</li>
+</ul>
+Set your code blocks to any of these; keep Times New Roman for the surrounding text.
+That combination is standard in every serious thesis that contains code.
+</div>
+
+<div class="box stop">
+<span class="lbl">Two cautions</span>
+<strong>Do not reach for a "Nerd Font."</strong> Those are coding fonts padded with
+thousands of decorative icon symbols meant for programmers' terminals. The icons are
+useless in a document, and if you embed such a font and your examiner's computer does not
+have it, your code can appear as empty boxes (□□□). A plain monospace font is what you
+want.<br><br>
+<strong>Turn off "ligatures" for teaching material.</strong> Some fashionable code fonts
+(Fira Code, JetBrains Mono) redraw <code>!=</code> as a single <code>&ne;</code> symbol.
+It looks elegant, but a reader trying to retype it will be confused about which keys to
+press. Fine in your own editor; avoid it in anything others must copy.
+</div>
+
+<h2>5. Small things worth knowing</h2>
+
+<p>None of these needs a section of its own, but each removes a small piece of mystery
+you will meet constantly:</p>
+
+<table>
+<tr><th style="width:30%">You will see</th><th>What it is</th></tr>
+<tr>
+  <td class="sym">c(1, 2, 3)</td>
+  <td><code>c()</code> means "combine into one vector." It is the most common function in
+      R — it is how you make a list of values, such as the package names in Section 2.</td>
+</tr>
+<tr>
+  <td class="sym">x &lt;- 5</td>
+  <td>The assignment arrow: "put 5 into x." <code>=</code> also works, but R users prefer
+      <code>&lt;-</code>. Type it fast with <strong>Alt+-</strong> (<strong>Option+-</strong>
+      on Mac), which inserts the arrow with spaces around it.</td>
+</tr>
+<tr>
+  <td class="sym">'ape' vs "ape"</td>
+  <td>Single and double quotes are identical in R. Use whichever you like; be consistent.</td>
+</tr>
+<tr>
+  <td class="sym">Tab</td>
+  <td>Start typing an object or file name and press <strong>Tab</strong> — RStudio
+      completes it. Fewer typos, and it shows you what is available.</td>
+</tr>
+<tr>
+  <td class="sym">Up arrow</td>
+  <td>In the Console, the up arrow recalls your previous commands. You rarely need to
+      retype anything.</td>
+</tr>
+<tr>
+  <td class="sym">str(d)  ·  head(d)  ·  summary(d)</td>
+  <td>The "look at what I have" toolkit. <code>str()</code> shows the structure and each
+      column's type; <code>head()</code> shows the first rows; <code>summary()</code> gives
+      a quick distribution. Run these on any data before analysing it.</td>
+</tr>
+<tr>
+  <td class="sym">names(d)</td>
+  <td>Lists the exact column names, with their exact capitalisation — the first check to
+      run when R says it cannot find a column.</td>
+</tr>
+</table>
+
+<div class="box">
+<span class="lbl">One habit that ties this together</span>
+Before you analyse a dataset, run <code>str()</code> on it and read what R thinks each
+column is. Half of all "it won't work" problems are a column R read as text when you meant
+a number, or a name spelled differently from what you typed. Looking first costs ten
+seconds and saves the afternoon.
+</div>
+
+<div class="foot">
+<strong>Version 1.0 — 30 July 2026.</strong> A companion to the
+<em>R Survival Guide</em> (v1.0, 24 July 2026). Every R result shown here was produced by
+running the code in R 4.3.3; RStudio keyboard shortcuts follow the official Posit RStudio
+IDE documentation.<br>
+Corrections and additions are welcome — if you encounter something not covered here,
+please mention it so that the next version includes it.
+</div>
+
+</body>
+</html>
