@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workshop House Rules — Understanding Molecular and Biological Data Through R</title>
+<style>
+  :root{
+    --ink:#1b2a23;
+    --ink-soft:#4a5a51;
+    --muted:#6d7c73;
+    --accent:#1e5236;
+    --accent-deep:#123a26;
+    --line:#dbe3dd;
+    --panel:#f4f7f4;
+    --paper:#ffffff;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--panel);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.65;
+    padding:32px 18px 64px;
+  }
+
+  .sheet{
+    max-width:760px;
+    margin:0 auto;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-top:5px solid var(--accent);
+  }
+
+  /* ---- Masthead ---- */
+  header{
+    padding:44px 48px 34px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-size:.74rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:2.5rem;
+    line-height:1.1;
+    letter-spacing:-.01em;
+    margin:0 0 18px;
+    color:var(--ink);
+  }
+  .status{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:.78rem;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--accent-deep);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 14px;
+  }
+  .status::before{
+    content:"";
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);
+  }
+
+  /* ---- Meta grid ---- */
+  .meta{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px 40px;
+    padding:26px 48px 30px;
+    border-bottom:1px solid var(--line);
+  }
+  .meta dt{
+    font-size:.68rem;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:700;
+    margin-bottom:3px;
+  }
+  .meta dd{
+    margin:0;
+    font-size:.95rem;
+    color:var(--ink-soft);
+  }
+
+  /* ---- Body ---- */
+  main{padding:38px 48px 20px;}
+
+  .lede{
+    font-size:1.02rem;
+    color:var(--ink-soft);
+  }
+  .lede p{margin:0 0 16px;}
+  .lede p:last-child{margin-bottom:0;}
+
+  .section-label{
+    font-family:var(--serif);
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--accent-deep);
+    margin:40px 0 8px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+  }
+
+  ol.rules{
+    list-style:none;
+    counter-reset:rule;
+    margin:24px 0 0;
+    padding:0;
+  }
+  ol.rules > li{
+    counter-increment:rule;
+    display:grid;
+    grid-template-columns:56px 1fr;
+    gap:20px;
+    padding:22px 0;
+    border-bottom:1px solid var(--line);
+  }
+  ol.rules > li:last-child{border-bottom:none;}
+  ol.rules > li::before{
+    content:counter(rule);
+    font-family:var(--serif);
+    font-size:2.1rem;
+    font-weight:700;
+    line-height:1;
+    color:var(--accent);
+    text-align:right;
+    padding-top:2px;
+  }
+  .rule-title{
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .rule-body{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:.97rem;
+  }
+
+  /* ---- Footer ---- */
+  footer{
+    margin-top:8px;
+    padding:26px 48px 34px;
+    border-top:1px solid var(--line);
+    background:var(--panel);
+    font-size:.82rem;
+    color:var(--muted);
+  }
+  footer .frow{display:flex;flex-wrap:wrap;gap:6px 22px;margin-bottom:6px;}
+  footer strong{color:var(--ink-soft);font-weight:700;}
+
+  a{color:var(--accent);}
+
+  /* ---- Responsive ---- */
+  @media (max-width:560px){
+    body{padding:16px 8px 40px;}
+    header,.meta,main,footer{padding-left:24px;padding-right:24px;}
+    h1{font-size:2rem;}
+    .meta{grid-template-columns:1fr;}
+    ol.rules > li{grid-template-columns:38px 1fr;gap:14px;}
+    ol.rules > li::before{font-size:1.7rem;}
+  }
+
+  /* ---- Print ---- */
+  @media print{
+    body{background:#fff;padding:0;font-size:12pt;}
+    .sheet{border:none;max-width:none;}
+    header,.meta,main,footer{padding-left:0;padding-right:0;}
+    .section-label,ol.rules > li{break-inside:avoid;}
+    .status{border-color:#000;}
+  }
+</style>
+</head>
+<body>
+  <article class="sheet">
+    <header>
+      <p class="eyebrow">Understanding Molecular and Biological Data Through R</p>
+      <h1>Workshop House Rules</h1>
+      <span class="status">In effect — remaining sessions</span>
+    </header>
+
+    <dl class="meta">
+      <div><dt>Program</dt><dd>PCIEERD–DOST Balik Scientist Program</dd></div>
+      <div><dt>Institution</dt><dd>Mariano Marcos State University, Batac, Ilocos Norte</dd></div>
+      <div><dt>BSP Fellow</dt><dd>Dr. Imelda L. Forteza</dd></div>
+      <div><dt>Author</dt><dd>Jan Ephraim R. Vallente</dd></div>
+      <div><dt>Approved by</dt><dd>Dr. Imelda L. Forteza</dd></div>
+      <div><dt>Version</dt><dd>1.0 — 30 July 2026</dd></div>
+    </dl>
+
+    <main>
+      <div class="lede">
+        <p>Session 1 was conducted under difficult conditions — a power interruption and venue logistics that disrupted the intended flow and left no opportunity to set ground rules. These house rules apply to the remaining sessions so that the workshop runs in an orderly, respectful, and efficient manner. They apply equally to everyone in the room.</p>
+        <p>A workshop of roughly seventy participants supported by two personnel depends on shared expectations. These rules exist to keep the learning environment safe for questions, honest in its troubleshooting, and workable at that ratio.</p>
+      </div>
+
+      <h2 class="section-label">The rules</h2>
+
+      <ol class="rules">
+        <li>
+          <div>
+            <p class="rule-title">Everyone in the room is equal.</p>
+            <p class="rule-body">Whatever a participant's status — undergraduate, graduate student, staff, or faculty — everyone is here to learn R, and every question is answered with the same respect. No question is beneath anyone's rank, and a substantial question from a senior participant elevates the session for the whole room.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">Honesty is never penalized.</p>
+            <p class="rule-body">Admitting that something is not yet understood, or describing honestly what was done during an installation or when an error appeared, is exactly what allows the team to help. Diagnosis depends on an accurate account: the team can only fix what it can see. No one will be judged for what they do not yet know.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">Not knowing is protected; not preparing is not.</p>
+            <p class="rule-body">Rules 1 and 2 protect <em>not knowing</em>. This rule governs <em>preparation</em>. Participants are expected to arrive with R and RStudio already installed, as instructed in advance, and to have read the materials provided — including the troubleshooting guide compiled after Session 1. A team of two cannot install software or re-explain written guidance for seventy people during live session time. Every document distributed has been prepared to aid learning and is there to be used; the troubleshooting guide in particular is the first point of reference when a familiar problem recurs. No one is judged for not knowing R. Everyone is expected to have done the setup they were asked to do.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">Registration is required; no walk-ins.</p>
+            <p class="rule-body">Seats are limited by the venue. Only registered participants can be accommodated for the remaining sessions.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">Come able to work without relying on the venue.</p>
+            <p class="rule-body">Please bring a charged laptop and, where possible, a charger and a power bank. Session 1 was affected by a power interruption, and uninterrupted power cannot be guaranteed.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">One shared pace, one set of materials.</p>
+            <p class="rule-body">During hands-on portions, please work from the provided handout and stay with the group rather than running ahead. Keeping the room in step allows two facilitators to support seventy people effectively.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">How questions are handled.</p>
+            <p class="rule-body">Questions are welcome at any time. Where a question is unusually deep or specific to one participant's own data, the team may note it and return to it during the hands-on block or after the session, so that the group can keep moving. This protects the open question-asking of Rule 1 while keeping the session on schedule.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <p class="rule-title">Punctuality and the optional early block.</p>
+            <p class="rule-body">The official session begins at 9:00 AM; please be seated by then. An optional early block at 8:30 AM is available for those who wish to attend, and no part of the official session depends on it.</p>
+          </div>
+        </li>
+      </ol>
+    </main>
+
+    <footer>
+      <div class="frow"><span><strong>Understanding Molecular and Biological Data Through R</strong></span></div>
+      <div class="frow"><span>PCIEERD–DOST Balik Scientist Program</span><span>Mariano Marcos State University, Batac, Ilocos Norte</span></div>
+      <div class="frow"><span><strong>BSP Fellow:</strong> Dr. Imelda L. Forteza</span><span><strong>Author:</strong> Jan Ephraim R. Vallente</span></div>
+      <div class="frow"><span>Version 1.0 — 30 July 2026</span></div>
+    </footer>
+  </article>
+</body>
+</html>
