@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navigating R Documentation — BSP MMSU Workshop Series</title>
+<style>
+/* ============================================================
+   TOKEN SYSTEM — matches existing BSP_MMSU suite
+   ============================================================ */
+:root {
+  --ink:          #1b2a23;
+  --ink-soft:     #4a5a51;
+  --muted:        #6d7c73;
+  --accent:       #1e5236;
+  --accent-deep:  #123a26;
+  --accent-pale:  #edf4ef;
+  --line:         #dbe3dd;
+  --panel:        #f4f7f4;
+  --paper:        #ffffff;
+  --code-bg:      #1b2a23;
+  --code-fg:      #a8d5b5;
+  --tip-bg:       #edf4ef;
+  --tip-border:   #1e5236;
+  --note-bg:      #fdf8ed;
+  --note-border:  #c8922a;
+  --serif:  Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans:   -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
+  --mono:   "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.68;
+  padding: 32px 18px 64px;
+}
+
+/* ============================================================
+   SHEET WRAPPER
+   ============================================================ */
+.sheet {
+  max-width: 820px;
+  margin: 0 auto;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 5px solid var(--accent);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.doc-header {
+  padding: 44px 52px 36px;
+  border-bottom: 1px solid var(--line);
+}
+.eyebrow {
+  font-family: var(--sans);
+  font-size: .72rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+.doc-title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 2.5rem;
+  line-height: 1.08;
+  letter-spacing: -.01em;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.doc-subtitle {
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  margin: 0;
+  max-width: 560px;
+}
+
+/* ============================================================
+   META GRID
+   ============================================================ */
+.doc-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px 44px;
+  padding: 26px 52px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.doc-meta dt {
+  font-size: .67rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.doc-meta dd {
+  margin: 0;
+  font-size: .94rem;
+  color: var(--ink-soft);
+}
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.doc-main { padding: 42px 52px 36px; }
+
+/* Intro lede */
+.lede {
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+  margin-bottom: 44px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+}
+.lede p { margin: 0 0 14px; }
+.lede p:last-child { margin-bottom: 0; }
+
+/* ============================================================
+   SECTION — numbered, sequential
+   ============================================================ */
+.sec { margin-bottom: 52px; }
+
+.sec-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 10px;
+  margin-bottom: 22px;
+}
+.sec-num {
+  font-family: var(--serif);
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 30px;
+  text-align: right;
+}
+.sec-title {
+  font-family: var(--serif);
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* Body text inside sections */
+.sec p {
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+.sec p:last-child { margin-bottom: 0; }
+
+.sec h3 {
+  font-size: .98rem;
+  font-weight: 700;
+  color: var(--accent-deep);
+  margin: 26px 0 8px;
+}
+
+/* ============================================================
+   INLINE CODE
+   ============================================================ */
+code {
+  font-family: var(--mono);
+  font-size: .86em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--accent-deep);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   CODE BLOCKS
+   ============================================================ */
+.cb {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  font-family: var(--mono);
+  font-size: .88rem;
+  line-height: 1.7;
+  border-radius: 6px;
+  padding: 18px 24px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.cb .cm { color: #4d8c63; }   /* comment */
+.cb .str { color: #d4b896; }  /* string */
+
+/* ============================================================
+   CALLOUT BOXES — tip and note
+   ============================================================ */
+.tip, .callout-note {
+  border-left: 4px solid;
+  border-radius: 0 6px 6px 0;
+  padding: 14px 18px;
+  margin: 22px 0;
+  font-size: .95rem;
+  color: var(--ink-soft);
+}
+.tip { background: var(--tip-bg); border-color: var(--tip-border); }
+.callout-note { background: var(--note-bg); border-color: var(--note-border); }
+
+.tip-label, .note-label {
+  display: block;
+  font-size: .68rem;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.tip-label { color: var(--accent-deep); }
+.note-label { color: #7a5010; }
+
+/* ============================================================
+   ANNOTATED MOCK HELP PAGE — signature element
+   ============================================================ */
+.hm-outer {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 22px 0;
+}
+
+.hm-bar {
+  background: #e6ece8;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 16px;
+  font-family: var(--sans);
+  font-size: .75rem;
+  color: var(--muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.hm-section {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.hm-section:last-child { border-bottom: none; }
+
+.hm-tag {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: .66rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 3px 9px;
+  margin-bottom: 10px;
+}
+
+/* Section-specific tints */
+.hm-tag-desc    { background: #dceee0; color: #194d27; }
+.hm-tag-usage   { background: #d8e6f8; color: #1a3060; }
+.hm-tag-args    { background: #fbe8d4; color: #6b3010; }
+.hm-tag-details { background: #ede0f8; color: #3c1a60; }
+.hm-tag-value   { background: #fde8f0; color: #601a40; }
+.hm-tag-ex      { background: var(--code-bg); color: var(--code-fg); }
+
+.hm-content {
+  font-family: var(--mono);
+  font-size: .84rem;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.65;
+  margin: 0;
+}
+.hm-section.hm-dark { background: #1b2a23; }
+.hm-section.hm-dark .hm-content { color: #a8d5b5; }
+
+/* Annotation strip — appears below the code content */
+.hm-annotation {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  font-family: var(--sans);
+  font-size: .83rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.hm-section.hm-dark .hm-annotation {
+  border-top-color: #2d4a38;
+  color: #7aaa8a;
+  background: transparent;
+}
+.hm-annotation::before { content: "↳ "; color: var(--accent); font-weight: 700; }
+
+/* ============================================================
+   FUNCTION SIGNATURE EXPLAINER
+   ============================================================ */
+.sig-block {
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: .9rem;
+  line-height: 2.0;
+  border-radius: 6px 6px 0 0;
+  padding: 18px 24px;
+  overflow-x: auto;
+}
+.sig-req  { color: #ff9d6e; }   /* required argument */
+.sig-def  { color: #85ccff; }   /* has a default */
+.sig-dots { color: #c8922a; }   /* ... */
+.sig-base { color: #a8d5b5; }   /* punctuation */
+
+.sig-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 14px 24px;
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+.sl-item { display: flex; align-items: center; gap: 8px; }
+.sl-dot  { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.sl-req  { background: #ff9d6e; }
+.sl-def  { background: #85ccff; }
+.sl-dots { background: #c8922a; }
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: .91rem;
+}
+.ref-table th {
+  background: var(--accent);
+  color: #fff;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: .74rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.ref-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table tr:nth-child(even) td { background: var(--panel); }
+.ref-table td code { font-size: .83em; }
+
+/* ============================================================
+   LINKS
+   ============================================================ */
+a { color: var(--accent); }
+a:hover { color: var(--accent-deep); }
+
+/* ============================================================
+   LISTS
+   ============================================================ */
+.sec ul {
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  padding-left: 24px;
+  line-height: 1.9;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.doc-footer {
+  padding: 24px 52px 32px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-size: .81rem;
+  color: var(--muted);
+}
+.doc-footer .fr { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-bottom: 5px; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 580px) {
+  body { padding: 10px 6px 40px; }
+  .doc-header, .doc-main, .doc-footer { padding-left: 22px; padding-right: 22px; }
+  .doc-meta { grid-template-columns: 1fr; padding-left: 22px; padding-right: 22px; }
+  .doc-title { font-size: 2rem; }
+  .sec-heading { gap: 12px; }
+  .sec-num { font-size: 1.5rem; width: auto; }
+  .sig-legend { flex-direction: column; }
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  body { background: #fff; padding: 0; font-size: 11pt; }
+  .sheet { border: none; max-width: none; }
+  .doc-header, .doc-meta, .doc-main, .doc-footer {
+    padding-left: 0; padding-right: 0;
+  }
+  .sec, .hm-outer, .sig-block, .cb { break-inside: avoid; }
+  a { color: var(--accent); text-decoration: none; }
+}
+</style>
+</head>
+<body>
+<article class="sheet">
+
+  <!-- ===== HEADER ===== -->
+  <header class="doc-header">
+    <p class="eyebrow">Understanding Molecular and Biological Data Through R</p>
+    <h1 class="doc-title">Navigating R Documentation</h1>
+    <p class="doc-subtitle">A plain-language guide to finding answers in R — for participants with no prior coding experience.</p>
+  </header>
+
+  <dl class="doc-meta">
+    <div><dt>Series</dt><dd>Understanding Molecular and Biological Data Through R</dd></div>
+    <div><dt>Program</dt><dd>PCIEERD–DOST Balik Scientist Program</dd></div>
+    <div><dt>BSP Fellow</dt><dd>Dr. Imelda L. Forteza</dd></div>
+    <div><dt>Author</dt><dd>Jan Ephraim R. Vallente</dd></div>
+    <div><dt>Institution</dt><dd>Mariano Marcos State University, Batac, Ilocos Norte</dd></div>
+    <div><dt>Version</dt><dd>1.0 — 30 July 2026</dd></div>
+  </dl>
+
+  <!-- ===== MAIN ===== -->
+  <main class="doc-main">
+
+    <div class="lede">
+      <p>When you use R, you are using a tool built by thousands of researchers and developers over many years. Every function in R — <code>read.csv()</code>, <code>aov()</code>, <code>summary()</code>, <code>tapply()</code> — comes with a built-in reference page that explains exactly what it does, how to use it, and what every option means.</p>
+      <p>This reference system is called R documentation, and learning to use it is the single most important step between following a handout and using R independently. This guide walks you through how to find that documentation, what it looks like, and how to read every part of it — including the parts that look confusing at first.</p>
+    </div>
+
+    <!-- ============================================================
+         SECTION 1 — Asking R for help
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">1</span>
+        <h2 class="sec-title">Asking R for help directly</h2>
+      </div>
+
+      <p>The fastest way to look up any function is to type a question mark followed by its name in the <strong>Console</strong> pane — the panel in the lower-left of RStudio. Type it and press <strong>Enter</strong>.</p>
+
+      <div class="cb"><span class="cm"># Type this in the Console, then press Enter</span>
+?read.csv</div>
+
+      <p>R immediately opens the full documentation for <code>read.csv()</code> in the <strong>Help</strong> tab — the panel in the lower-right of your screen. No internet connection is needed. The documentation is installed on your computer together with R itself.</p>
+
+      <p>You can also write it as a function call. Both forms produce exactly the same result:</p>
+
+      <div class="cb">help(read.csv)</div>
+
+      <div class="tip">
+        <span class="tip-label">Using RStudio without typing</span>
+        If you prefer to click rather than type, look for the <strong>search box</strong> in the top-right corner of the Help pane. Type a function name there directly and press Enter — no need to go to the Console at all.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 2 — Reading a help page (SIGNATURE ELEMENT)
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">2</span>
+        <h2 class="sec-title">How to read a help page</h2>
+      </div>
+
+      <p>Every R help page follows exactly the same structure. Below is a representation of what you will see when you type <code>?read.csv</code>. Each section of the page is labelled and annotated so you know what it is telling you.</p>
+
+      <!-- ===== MOCK HELP PAGE ===== -->
+      <div class="hm-outer">
+        <div class="hm-bar">RStudio Help pane — read.csv {utils}</div>
+
+        <!-- Description -->
+        <div class="hm-section">
+          <span class="hm-tag hm-tag-desc">Description</span>
+          <pre class="hm-content">Reads a file in table format and creates a data frame from it, with
+cases corresponding to lines and variables to fields in the file.</pre>
+          <div class="hm-annotation">A plain summary of what the function does. Read this first to confirm you have the right function for the task.</div>
+        </div>
+
+        <!-- Usage -->
+        <div class="hm-section">
+          <span class="hm-tag hm-tag-usage">Usage</span>
+          <pre class="hm-content">read.csv(file, header = TRUE, sep = ",", quote = "\"",
+         dec = ".", fill = TRUE, comment.char = "", ...)</pre>
+          <div class="hm-annotation">The full function signature — every option you <em>can</em> control. Items written as <code>name = value</code> already have a built-in default; you only need to supply the ones you want to change. Section 3 explains this in full.</div>
+        </div>
+
+        <!-- Arguments -->
+        <div class="hm-section">
+          <span class="hm-tag hm-tag-args">Arguments</span>
+          <pre class="hm-content"><strong>file</strong>           the name of the file to be read, as a text string in
+               quotation marks. Example: "mydata.csv"
+
+<strong>header</strong>         a TRUE/FALSE value indicating whether the first row of
+               the file contains column names. Default: TRUE.
+
+<strong>sep</strong>            the character used to separate fields. For comma-separated
+               files this is a comma. Default: ","
+
+<strong>dec</strong>            the character used for decimal points in the file.
+               Default: "." (a period)</pre>
+          <div class="hm-annotation">Each option explained one by one, in plain language. When a line of code is not doing what you expect, read the Arguments section carefully — the explanation is almost always here. Not every argument is shown above; scroll down on the real page to see all of them.</div>
+        </div>
+
+        <!-- Details -->
+        <div class="hm-section">
+          <span class="hm-tag hm-tag-details">Details</span>
+          <pre class="hm-content">This function is a wrapper around read.table() with different defaults.
+It expects a comma-separated file where the first row contains
+variable names.</pre>
+          <div class="hm-annotation">Not every help page has a Details section, and it is not always necessary to read it. It contains longer technical explanations of edge cases and special behavior. Skip it until the Description and Arguments do not give you the answer you need.</div>
+        </div>
+
+        <!-- Value -->
+        <div class="hm-section">
+          <span class="hm-tag hm-tag-value">Value</span>
+          <pre class="hm-content">A data frame containing a representation of the data in the file.</pre>
+          <div class="hm-annotation">What the function gives back to you — the output. For <code>read.csv()</code>, the output is a data frame: the table-like structure you work with in R. This section tells you what you can do with the result.</div>
+        </div>
+
+        <!-- Examples -->
+        <div class="hm-section hm-dark">
+          <span class="hm-tag hm-tag-ex">Examples</span>
+          <pre class="hm-content"><span class="cm">## Read a CSV file from your working directory</span>
+df &lt;- read.csv("mydata.csv")
+head(df)
+
+<span class="cm">## Read a file that uses a semicolon instead of a comma</span>
+df2 &lt;- read.csv("mydata.csv", sep = ";")</pre>
+          <div class="hm-annotation">Real, runnable R code. You can copy any line from the Examples section directly into your Console or script and run it. This section is one of the most useful parts of any help page — especially when you want to see how a function is meant to be used before trying it yourself.</div>
+        </div>
+      </div>
+      <!-- ===== END MOCK HELP PAGE ===== -->
+
+      <div class="tip">
+        <span class="tip-label">The single most useful habit to build</span>
+        When a line of code behaves unexpectedly, go to the help page for the function and read the <strong>Arguments</strong> section. Nine times out of ten, the explanation is already there.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 3 — Default values
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">3</span>
+        <h2 class="sec-title">What default values mean</h2>
+      </div>
+
+      <p>Look at the Usage line again. Arguments written as <code>name = value</code> — with an equals sign — already have a value that R uses automatically unless you override it. These are called <strong>default values</strong>. Arguments without an equals sign have no default; you must supply them yourself.</p>
+
+      <div class="sig-block">
+<span class="sig-base">read.csv(</span><span class="sig-req">file</span><span class="sig-base">, </span><span class="sig-def">header = TRUE</span><span class="sig-base">, </span><span class="sig-def">sep = ","</span><span class="sig-base">, </span><span class="sig-def">quote = "\""</span><span class="sig-base">,</span>
+<span class="sig-base">         </span><span class="sig-def">dec = "."</span><span class="sig-base">, </span><span class="sig-def">fill = TRUE</span><span class="sig-base">, </span><span class="sig-def">comment.char = ""</span><span class="sig-base">, </span><span class="sig-dots">...</span><span class="sig-base">)</span></div>
+      <div class="sig-legend">
+        <span class="sl-item"><span class="sl-dot sl-req"></span>Required — you must provide this</span>
+        <span class="sl-item"><span class="sl-dot sl-def"></span>Has a default — R fills it in automatically</span>
+        <span class="sl-item"><span class="sl-dot sl-dots"></span><code>...</code> passes additional options through to other functions (advanced — not needed at this stage)</span>
+      </div>
+
+      <h3>What this means in practice</h3>
+      <p>When you write <code>read.csv("mydata.csv")</code>, you are supplying only the one required argument: the file name. R fills in everything else using the defaults. The short form and the full form below produce exactly the same result:</p>
+
+      <div class="cb"><span class="cm"># Short form — R fills in the rest automatically</span>
+df &lt;- read.csv("mydata.csv")
+
+<span class="cm"># Full form — identical result; every default written out explicitly</span>
+df &lt;- read.csv("mydata.csv", header = TRUE, sep = ",", quote = "\"",
+               dec = ".", fill = TRUE, comment.char = "")</div>
+
+      <p>When you need to change one of the defaults, you only need to name that one argument. Everything else stays at its default value:</p>
+
+      <div class="cb"><span class="cm"># The file uses semicolons, not commas — change only sep</span>
+df &lt;- read.csv("mydata.csv", sep = ";")</div>
+
+      <div class="callout-note">
+        <span class="note-label">Common source of confusion</span>
+        <code>read.csv()</code> always expects a comma-separated file because its default is <code>sep = ","</code>. If your data file uses a different separator — semicolons, tabs, or spaces — you must change this argument. If you forget, R will try to read the entire row as a single column, and your data will appear to have only one variable.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 4 — When you don't know the function name
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">4</span>
+        <h2 class="sec-title">When you do not know the function name</h2>
+      </div>
+
+      <p>Sometimes you know what you want to do — run a correlation, draw a bar chart, test for normality — but you do not know which R function handles it. Two question marks search all installed documentation for a word or phrase:</p>
+
+      <div class="cb"><span class="cm"># Search all installed documentation for anything about "correlation"</span>
+??correlation
+
+<span class="cm"># Alternative, identical result</span>
+help.search("correlation")</div>
+
+      <p>R returns a list of matching functions. Each result shows the package name, the function name, and a brief description. Use <code>?</code> to open the full page for whichever looks relevant.</p>
+
+      <div class="tip">
+        <span class="tip-label">One ? versus two ??</span>
+        <code>?read.csv</code> — you know the exact function name. Opens its page directly.<br><br>
+        <code>??correlation</code> — you know what you want to do, not the function name. Searches all installed documentation.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 5 — Running examples directly (VOLUNTEERED)
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">5</span>
+        <h2 class="sec-title">Running the examples on a help page</h2>
+      </div>
+
+      <p>Every help page ends with an Examples section containing real, runnable code. Rather than copying that code manually, R can execute it for you in one command:</p>
+
+      <div class="cb"><span class="cm"># Run all the examples from the read.csv help page automatically</span>
+example(read.csv)</div>
+
+      <p>R runs every line in the Examples section and shows the output in the Console. This is useful when you want to see a function in action before using it on your own data — you can observe the inputs, the outputs, and the expected behavior without writing any code yourself.</p>
+
+      <div class="tip">
+        <span class="tip-label">Why this matters for learning independently</span>
+        If you encounter a function you have not used before, <code>example(function_name)</code> is often the fastest way to understand what it does. The examples are written by the same people who built the function.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 6 — CRAN and vignettes
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">6</span>
+        <h2 class="sec-title">Finding packages and their documentation</h2>
+      </div>
+
+      <p>R can be extended with <strong>packages</strong> — collections of additional functions contributed by researchers worldwide. The official repository where packages are stored is called <strong>CRAN</strong> (Comprehensive R Archive Network):</p>
+      <p><a href="https://cran.r-project.org/" target="_blank">https://cran.r-project.org/</a></p>
+
+      <p>When you install a package with <code>install.packages("packagename")</code>, R downloads it from CRAN. Every package on CRAN has a page that includes:</p>
+      <ul>
+        <li>A plain-language description of what it does</li>
+        <li>A <strong>Reference Manual</strong> — the complete documentation for every function in the package</li>
+        <li><strong>Vignettes</strong> — longer, tutorial-style guides that walk through a real problem from beginning to end</li>
+      </ul>
+
+      <h3>Accessing vignettes directly from inside R</h3>
+      <p>You do not need to visit the CRAN website to read vignettes. If a package is already installed, you can open its vignettes from within RStudio:</p>
+
+      <div class="cb"><span class="cm"># See a list of all vignettes for an installed package</span>
+browseVignettes("ggplot2")
+
+<span class="cm"># Open a specific vignette by name</span>
+vignette("ggplot2-specs")</div>
+
+      <div class="tip">
+        <span class="tip-label">Start with vignettes when learning a new package</span>
+        Vignettes are written as tutorials, not reference lists. If a package has vignettes, they are almost always the most beginner-friendly starting point — far more readable than a raw function reference.
+      </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 7 — tidyverse
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">7</span>
+        <h2 class="sec-title">The tidyverse — a family of packages with clear documentation</h2>
+      </div>
+
+      <p>Several of the most widely used packages for data analysis in R belong to a family called the <strong>tidyverse</strong>. These packages were designed to work together and are known for their readable, beginner-friendly documentation. The main website is:</p>
+      <p><a href="https://www.tidyverse.org/" target="_blank">https://www.tidyverse.org/</a></p>
+
+      <p>Each package has its own dedicated documentation site with a function reference, a getting-started guide, and worked examples:</p>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>What it does</th>
+            <th>Documentation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>ggplot2</code></td>
+            <td>Graphs and charts</td>
+            <td><a href="https://ggplot2.tidyverse.org/" target="_blank">ggplot2.tidyverse.org</a></td>
+          </tr>
+          <tr>
+            <td><code>dplyr</code></td>
+            <td>Filtering, grouping, and summarizing data</td>
+            <td><a href="https://dplyr.tidyverse.org/" target="_blank">dplyr.tidyverse.org</a></td>
+          </tr>
+          <tr>
+            <td><code>readr</code></td>
+            <td>Reading data files into R</td>
+            <td><a href="https://readr.tidyverse.org/" target="_blank">readr.tidyverse.org</a></td>
+          </tr>
+          <tr>
+            <td><code>tidyr</code></td>
+            <td>Reshaping and cleaning data</td>
+            <td><a href="https://tidyr.tidyverse.org/" target="_blank">tidyr.tidyverse.org</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============================================================
+         SECTION 8 — Official R manuals
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">8</span>
+        <h2 class="sec-title">Official R manuals</h2>
+      </div>
+
+      <p>For a comprehensive written reference, the R project maintains a set of official manuals at:</p>
+      <p><a href="https://stat.ethz.ch/R-manual/R-devel/doc/html/" target="_blank">https://stat.ethz.ch/R-manual/R-devel/doc/html/</a></p>
+
+      <p>The most useful manual for workshop participants is <strong>An Introduction to R</strong>. It covers the fundamentals of the language from the ground up and is the authoritative starting point for anyone learning R seriously:</p>
+      <p><a href="https://stat.ethz.ch/R-manual/R-devel/doc/manual/R-intro.html" target="_blank">https://stat.ethz.ch/R-manual/R-devel/doc/manual/R-intro.html</a></p>
+    </section>
+
+    <!-- ============================================================
+         SECTION 9 — Quick reference
+    ============================================================ -->
+    <section class="sec">
+      <div class="sec-heading">
+        <span class="sec-num">9</span>
+        <h2 class="sec-title">Quick reference</h2>
+      </div>
+
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>What you want to do</th>
+            <th>Type this in the Console</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Look up a function you already know</td>
+            <td><code>?read.csv</code> &nbsp;or&nbsp; <code>help(read.csv)</code></td>
+          </tr>
+          <tr>
+            <td>Search for a function by topic when you don't know its name</td>
+            <td><code>??correlation</code> &nbsp;or&nbsp; <code>help.search("correlation")</code></td>
+          </tr>
+          <tr>
+            <td>Run the examples from a help page directly</td>
+            <td><code>example(read.csv)</code></td>
+          </tr>
+          <tr>
+            <td>Look up a function from a specific package</td>
+            <td><code>?dplyr::filter</code></td>
+          </tr>
+          <tr>
+            <td>List all functions in an installed package</td>
+            <td><code>help(package = "ggplot2")</code></td>
+          </tr>
+          <tr>
+            <td>Browse vignettes (tutorials) for an installed package</td>
+            <td><code>browseVignettes("ggplot2")</code></td>
+          </tr>
+          <tr>
+            <td>Open a specific vignette by name</td>
+            <td><code>vignette("ggplot2-specs")</code></td>
+          </tr>
+          <tr>
+            <td>Browse all installed documentation (RStudio)</td>
+            <td>Click the <strong>Help</strong> tab → the house icon at the top</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="tip">
+        <span class="tip-label">Three sites worth bookmarking</span>
+        <strong>R Manuals (official):</strong> <a href="https://stat.ethz.ch/R-manual/R-devel/doc/html/" target="_blank">stat.ethz.ch/R-manual/R-devel/doc/html/</a><br>
+        <strong>CRAN (packages):</strong> <a href="https://cran.r-project.org/" target="_blank">cran.r-project.org</a><br>
+        <strong>tidyverse:</strong> <a href="https://www.tidyverse.org/" target="_blank">tidyverse.org</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="doc-footer">
+    <div class="fr"><strong>Understanding Molecular and Biological Data Through R</strong></div>
+    <div class="fr"><span>PCIEERD–DOST Balik Scientist Program</span><span>Mariano Marcos State University, Batac, Ilocos Norte</span></div>
+    <div class="fr"><span><strong>BSP Fellow:</strong> Dr. Imelda L. Forteza</span><span><strong>Author:</strong> Jan Ephraim R. Vallente</span></div>
+    <div class="fr">Version 1.0 — 30 July 2026</div>
+  </footer>
+
+</article>
+</body>
+</html>
