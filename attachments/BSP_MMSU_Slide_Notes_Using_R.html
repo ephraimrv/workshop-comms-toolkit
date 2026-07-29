@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BSP–MMSU Workshop Series — Notes: Using R on Your Own Data</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 10pt;
+         line-height: 1.45; color: #1a1a1a; max-width: 720px; margin: 30px auto; padding: 0 18px; }
+  h1 { font-size: 16pt; margin: 0 0 3px 0; }
+  .sub { color: #666; font-size: 8.5pt; margin-bottom: 4px; }
+  .byline { color: #666; font-size: 8.5pt; border-bottom: 2px solid #333;
+            padding-bottom: 10px; margin-bottom: 16px; }
+  h2 { font-size: 11.5pt; margin: 22px 0 6px 0; padding-bottom: 3px;
+       border-bottom: 1.5px solid #333; }
+  h3 { font-size: 10pt; margin: 14px 0 4px 0; color: #222; }
+  code { font-family: "SF Mono", Consolas, monospace; font-size: 9pt;
+         background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; border-left: 3px solid #999;
+        border-radius: 4px; padding: 9px 13px; font-size: 8.8pt; overflow-x: auto;
+        line-height: 1.4; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+  td, th { vertical-align: top; padding: 4px 6px; border-bottom: 1px solid #e2e2e2;
+           text-align: left; }
+  th { background: #f4f4f4; font-size: 8.5pt; text-transform: uppercase;
+       letter-spacing: 0.4px; }
+  td.sym { width: 38%; font-family: "SF Mono", Consolas, monospace; font-size: 8.6pt; }
+  .box { border-left: 3px solid #c9a227; background: #fdfaf0; padding: 9px 14px;
+         margin: 12px 0; }
+  .box.stop { border-left-color: #c0392b; background: #fdf3f2; }
+  .box.go { border-left-color: #2e8b57; background: #f2faf5; }
+  .lbl { font-weight: 600; font-size: 8.5pt; text-transform: uppercase;
+         letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+  .yes { color: #2e8b57; font-weight: 600; }
+  .no { color: #c0392b; font-weight: 600; }
+  ul { margin: 5px 0 5px 0; padding-left: 20px; }
+  ol { padding-left: 20px; }
+  li { margin-bottom: 3px; }
+  .foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc;
+          font-size: 8.5pt; color: #555; }
+  .toc { background: #f7f7f7; border: 1px solid #e0e0e0; border-radius: 5px;
+         padding: 10px 16px; font-size: 9pt; }
+  .toc ol { margin: 4px 0; padding-left: 20px; }
+  .step { font-size: 8pt; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.8px; color: #2c6e8f; display: block; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<h1>Notes: Using R on Your Own Data</h1>
+<div class="sub">A plain-language companion to the workshop slides</div>
+<div class="byline">
+BSP–MMSU Workshop Series · Understanding Molecular and Biological Data Through R<br>
+Balik Scientist Program · Mariano Marcos State University<br>
+BSP Fellow: Dr. Imelda L. Forteza<br>
+Author: Jan Ephraim R. Vallente, Research Assistant
+</div>
+
+<p>The slides move quickly. This document covers the same ground at a slower pace,
+in plain language, with no assumptions about statistics background. Each section
+here corresponds to a section of the slides. You do not need to read them in order —
+use the table of contents to find the part that confused you.</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li>The one question everything is answering</li>
+  <li>Loading your data into R</li>
+  <li>Looking at what you loaded</li>
+  <li>Computing group averages with <code>tapply</code></li>
+  <li>Running ANOVA — the main comparison</li>
+  <li>Reading the ANOVA results table</li>
+  <li>Understanding the p-value</li>
+  <li>Finding which groups differ — Tukey's test</li>
+  <li>Checking whether ANOVA was even valid</li>
+  <li>What to do when ANOVA is not valid — Kruskal–Wallis</li>
+  <li>The factorial model — asking two questions at once</li>
+  <li>The complete workflow in one view</li>
+</ol>
+</div>
+
+
+<h2>1. The one question everything is answering</h2>
+
+<p>The entire slide deck — every function, every test, every output table — is trying
+to answer one question:</p>
+
+<div class="box go">
+<span class="lbl">The question</span>
+Did the treatments cause the groups to perform differently?
+</div>
+
+<p>In the demo, five groups of rats were given different treatments. We measured how many
+maze arms they entered correctly. The question is simply: <em>are those five groups
+meaningfully different from one another, or could the differences we see just be
+random chance?</em></p>
+
+<p>Every step that follows is either preparing to answer that question, answering it,
+or checking that the answer is trustworthy.</p>
+
+
+<h2>2. Loading your data into R</h2>
+
+<span class="step">Slide: "R reads it in one line"</span>
+<pre>d &lt;- read.csv("ecig_memory.csv")</pre>
+
+<p>This is the only line that actually brings your data into R. Everything else works
+on data that is already loaded. Think of it as opening a file in Excel — except R
+holds the whole spreadsheet in memory under the name <code>d</code>, and you
+refer to columns with the <code>$</code> sign: <code>d$correct</code>,
+<code>d$group</code>, and so on.</p>
+
+<p>The file must be a <strong>CSV</strong> (comma-separated values). If your data is in
+Excel, save it first: File → Save As → CSV. That single step is the bridge between
+your spreadsheet and R.</p>
+
+<div class="box stop">
+<span class="lbl">The most common error here</span>
+R says "cannot open file — No such file or directory." This almost always means R is
+looking in a different folder from where the file is saved. The fix: in RStudio, go to
+Session → Set Working Directory → To Source File Location. Then try again.
+The Survival Guide covers this in detail under Section 5.
+</div>
+
+
+<h2>3. Looking at what you loaded</h2>
+
+<span class="step">Slide: "Step 1 — Read it, and look at it"</span>
+<pre>str(d)
+head(d)
+tapply(short$correct, short$group, mean)</pre>
+
+<p>These three lines do not analyse anything. They let you inspect what R actually
+received, before you trust any results. Think of this as opening the spreadsheet and
+scanning it for obvious problems before you start calculating.</p>
+
+<table>
+<tr><th style="width:28%">Function</th><th>What it shows you</th></tr>
+<tr><td class="sym">str(d)</td>
+    <td>The structure: how many rows, how many columns, and what <em>type</em> each column
+        is. A column of numbers that came in as text (<code>chr</code> instead of
+        <code>num</code>) will break every statistical test. This is how you catch
+        it early.</td></tr>
+<tr><td class="sym">head(d)</td>
+    <td>The first six rows, so you can see whether the data looks like what you
+        entered. If the first row contains a group label instead of a number, something
+        went wrong at the save step.</td></tr>
+</table>
+
+<div class="box">
+<span class="lbl">Why this matters</span>
+Half of all "it won't work" moments in R happen because a column that should be a number
+was read as text, or a column name has an extra space. Running <code>str(d)</code>
+first catches this in seconds. Skipping it and going straight to the statistics means
+debugging a confusing error later.
+</div>
+
+
+<h2>4. Computing group averages with <code>tapply</code></h2>
+
+<span class="step">Slide: "Step 1 — Read it, and look at it"</span>
+<pre>tapply(short$correct, short$group, mean)</pre>
+
+<p><code>tapply</code> stands for "table apply." It takes three ingredients:</p>
+
+<ol>
+  <li><strong>The column of values</strong> — here, <code>short$correct</code>,
+      the number of correct entries per rat per trial.</li>
+  <li><strong>The grouping column</strong> — here, <code>short$group</code>,
+      which treatment group each rat belongs to.</li>
+  <li><strong>The function to apply</strong> — here, <code>mean</code>.</li>
+</ol>
+
+<p>It splits the values by group, then computes the mean for each group separately.
+The result for this data is:</p>
+
+<pre>CONTROL  MO_ONLY  ECIG_ONLY  MO_ECIG  DPL_ECIG
+   6.05     6.35       5.95     4.90      5.35</pre>
+
+<p>In ordinary language: on average, CONTROL rats entered 6.05 correct arms;
+MO_ECIG rats entered only 4.90. There is a visible difference. But <em>visible</em>
+is not the same as <em>statistically reliable</em>. The averages could differ just
+because of random variation between individual rats — five rats per group is a small
+number. That is what the next step tests.</p>
+
+<div class="box">
+<span class="lbl">Note on the subset</span>
+The code uses <code>short</code>, not <code>d</code>. The full dataset has both
+short-term and long-term memory trials. The line
+<code>short &lt;- subset(d, term == "short")</code> creates a smaller table containing
+only short-term rows. The group comparison is run on that smaller table so the two
+memory types are not mixed together.
+</div>
+
+
+<h2>5. Running ANOVA — the main comparison</h2>
+
+<span class="step">Slide: "Step 2 — Compare the groups (ANOVA)"</span>
+<pre>fit &lt;- aov(correct ~ group, data = short)
+summary(fit)</pre>
+
+<p>ANOVA stands for <strong>Analysis of Variance</strong>. Despite the name, it tests
+whether <em>means</em> differ — it does so by comparing how much the groups vary
+against how much individual subjects within the same group vary.</p>
+
+<p>The <code>~</code> symbol (tilde) means "depends on" or "explained by." So
+<code>correct ~ group</code> means: <em>"I want to know whether the correct-entry
+count depends on which group the rat was in."</em> The thing being explained goes on
+the left; the thing doing the explaining goes on the right.</p>
+
+<p>The result is stored in <code>fit</code> so that later steps can re-use it without
+running the analysis again.</p>
+
+
+<h2>6. Reading the ANOVA results table</h2>
+
+<span class="step">Slide: "Step 2 — Compare the groups (ANOVA)"</span>
+<pre>            Df Sum Sq Mean Sq F value Pr(&gt;F)
+group        4   27.4    6.84   1.821  0.131
+Residuals   95  356.8    3.76</pre>
+
+<p>Each column has a specific meaning. You only need to read one of them to get the
+answer — but knowing what the others mean helps you understand why.</p>
+
+<table>
+<tr><th style="width:22%">Column</th><th>Plain meaning</th></tr>
+<tr><td class="sym">Df</td>
+    <td>Degrees of freedom. For groups: number of groups minus 1 (5 groups → 4).
+        For Residuals: total rows minus number of groups (100 rows − 5 → 95).
+        You do not need to calculate these; R does it automatically.</td></tr>
+<tr><td class="sym">Sum Sq / Mean Sq</td>
+    <td>How much variation is explained by the groups (27.4) versus how much is
+        unexplained noise within groups (356.8). Mean Sq is just Sum Sq divided by Df.
+        A large group Sum Sq relative to the Residuals Sum Sq suggests a real effect.</td></tr>
+<tr><td class="sym">F value</td>
+    <td>The ratio of group signal to leftover noise: 6.84 ÷ 3.76 = 1.821. A larger F
+        means the groups are more separated relative to the noise. There is no fixed
+        threshold — the p-value converts it into a probability.</td></tr>
+<tr><td class="sym">Pr(&gt;F)</td>
+    <td><strong>This is the p-value.</strong> It is the only column you need to read
+        to reach a conclusion. Everything else feeds into computing it.</td></tr>
+</table>
+
+
+<h2>7. Understanding the p-value</h2>
+
+<span class="step">Slide: "One number you'll see everywhere: the p-value"</span>
+
+<p>The p-value answers a specific question:</p>
+
+<div class="box">
+<span class="lbl">What the p-value asks</span>
+If the groups were <em>truly identical</em> in the population, how often would random
+chance alone produce differences at least this large?
+</div>
+
+<p>In this data: <strong>p = 0.131</strong>. That means: if there were genuinely no
+treatment effect, you would still see differences this large about 13% of the time just
+by chance. That is too often to be confident the effect is real.</p>
+
+<p>The conventional threshold is <strong>0.05</strong> (5%). Below it, the result is
+called statistically significant — meaning the differences are unlikely enough to be
+due to chance that we can claim they are probably real.</p>
+
+<table>
+<tr><th style="width:30%">p-value</th><th>Conclusion</th></tr>
+<tr><td class="sym">p &lt; 0.05</td>
+    <td><span class="yes">Probably real.</span> The groups differ more than chance
+        would usually produce.</td></tr>
+<tr><td class="sym">p &gt; 0.05</td>
+    <td><span class="no">Not enough evidence.</span> The observed differences could
+        easily be random variation.</td></tr>
+</table>
+
+<div class="box stop">
+<span class="lbl">Three things the p-value does NOT mean</span>
+<ul>
+  <li><strong>p > 0.05 does not mean the groups are identical.</strong> It means the
+      data does not give enough evidence to claim they are different. Absence of
+      evidence is not evidence of absence.</li>
+  <li><strong>p-value is not the size of the effect.</strong> A tiny, unimportant
+      difference can be statistically significant with a large enough sample. Always
+      look at the actual means alongside the p-value.</li>
+  <li><strong>0.05 is a convention, not a law.</strong> p = 0.049 and p = 0.051 are
+      essentially the same. The line is a useful rule of thumb, not a sharp boundary
+      between "true" and "false."</li>
+</ul>
+</div>
+
+<p>R also prints significance stars next to each p-value as a quick visual guide:</p>
+<pre>0 '***'   0.001 '**'   0.01 '*'   0.05 '.'   0.1 ' '</pre>
+<p>More stars = smaller p-value = stronger evidence. No star (or a dot) means the
+result did not reach the 0.05 threshold.</p>
+
+
+<h2>8. Finding which groups differ — Tukey's test</h2>
+
+<span class="step">Slide: "Step 3 — Which groups differ? (post-hoc)"</span>
+<pre>TukeyHSD(aov(correct ~ group, data = short))</pre>
+
+<p>Suppose ANOVA had found a significant result — p below 0.05. That would only tell
+you that <em>somewhere</em> among the five groups there is a real difference. It does
+not tell you <em>which</em> groups are different from which others.</p>
+
+<p>Tukey's Honest Significant Difference test answers that follow-up question. It
+compares every possible pair of groups and gives each pair its own p-value, already
+adjusted for the fact that you are running many comparisons at once.</p>
+
+<pre>                    diff    lwr    upr  p adj
+MO_ONLY-CONTROL     0.30  -1.40   2.00  0.988
+ECIG_ONLY-CONTROL  -0.10  -1.80   1.60  1.000
+MO_ECIG-CONTROL    -1.15  -2.85   0.55  0.337
+MO_ECIG-MO_ONLY    -1.45  -3.15   0.25  0.134</pre>
+
+<p>Read each row as a comparison between two groups. The columns mean:</p>
+<ul>
+  <li><strong>diff</strong> — how much the means differ between the two groups.</li>
+  <li><strong>lwr / upr</strong> — the range the true difference probably falls within.
+      If this range crosses zero, you cannot confidently say which group is higher.</li>
+  <li><strong>p adj</strong> — the adjusted p-value for that specific pair. Below 0.05
+      means that particular pair differs significantly.</li>
+</ul>
+
+<p>In this data, no pair reaches 0.05 — consistent with the overall ANOVA result of
+p = 0.131. The Tukey test is most useful after a significant ANOVA, to locate
+<em>where</em> the difference sits.</p>
+
+
+<h2>9. Checking whether ANOVA was even valid</h2>
+
+<span class="step">Slide: "Step 4 — Is the standard test even valid?"</span>
+<pre>shapiro.test(residuals(fit))
+bartlett.test(correct ~ group, short)</pre>
+
+<p>ANOVA is a reliable test — but only when the data meets two conditions. These two
+lines check those conditions.</p>
+
+<p>Think of it this way: before using a thermometer to diagnose a patient, you verify
+that the thermometer is reading correctly. These tests verify that ANOVA is the right
+instrument for this data.</p>
+
+<table>
+<tr><th style="width:28%">Test</th><th>What it checks · how to read it</th></tr>
+<tr><td class="sym">shapiro.test(...)</td>
+    <td><strong>Shapiro–Wilk.</strong> Checks whether the residuals (the leftover
+        differences after removing group averages) follow a roughly bell-shaped
+        distribution — one of ANOVA's assumptions. A p-value <strong>below 0.05 is
+        a warning</strong>: the distribution is too skewed or irregular for ANOVA to
+        be fully reliable.</td></tr>
+<tr><td class="sym">bartlett.test(...)</td>
+    <td><strong>Bartlett test.</strong> Checks whether the spread of scores is
+        similar across all groups — ANOVA's other main assumption. Again, p
+        <strong>below 0.05 is a warning</strong>: the spreads differ too much.</td></tr>
+</table>
+
+<div class="box stop">
+<span class="lbl">Important: the direction is reversed here</span>
+For ANOVA, TukeyHSD, and Kruskal–Wallis, a small p-value (below 0.05) is the result
+you are looking for. For Shapiro–Wilk and Bartlett, a small p-value is a
+<em>warning flag</em> — it means the assumption has failed. The p-value itself works
+the same way; what changes is what you <em>want</em> that p-value to be.
+</div>
+
+<p>In this data, both checks returned p below 0.001 — a strong signal that the
+assumptions were violated. This means the ANOVA p-value of 0.131 cannot be fully
+trusted, and an alternative test is needed.</p>
+
+
+<h2>10. What to do when ANOVA is not valid — Kruskal–Wallis</h2>
+
+<span class="step">Slide: "Step 5 — Use the test that fits"</span>
+<pre>kruskal.test(correct ~ group, data = short)</pre>
+
+<p>The Kruskal–Wallis test asks the same question as ANOVA — do the groups differ? —
+but makes no assumption about the shape or spread of the data. It works by converting
+the raw values into ranks (1st, 2nd, 3rd…) and comparing those ranks across groups,
+rather than comparing the raw means.</p>
+
+<p>You read its output the same way: look at the p-value.</p>
+
+<pre>chi-squared = 7.051,  df = 4,  p = 0.133</pre>
+
+<p>Here, p = 0.133 — above 0.05. The conclusion is the same as ANOVA: no significant
+group difference. The fact that both tests agree strengthens that conclusion. But the
+important point is that we only know they agree <em>because we checked</em>. If
+assumptions had been fine, the ANOVA result alone would have been sufficient. If they
+had disagreed, we would have trusted the Kruskal–Wallis result, since it makes fewer
+assumptions. Always check first.</p>
+
+<div class="box">
+<span class="lbl">Why the output says "chi-squared"</span>
+Kruskal–Wallis uses a chi-squared value internally to compute its p-value. This is a
+mathematical detail — it does not make it the same as a chi-squared test.
+A chi-squared test (<code>chisq.test()</code>) is a different thing entirely, used for
+count data in categories. The cheat sheet explains both. Do not confuse them.
+</div>
+
+
+<h2>11. The factorial model — asking two questions at once</h2>
+
+<span class="step">Slides: "Where R leaves point-and-click behind" and
+"The factorial view sees what one test misses"</span>
+<pre>summary(aov(correct ~ term * group, data = d))</pre>
+
+<p>The experiment has two factors: which treatment group the rat belongs to, and which
+type of memory was being tested (short-term or long-term). Instead of running a
+separate ANOVA for each, the <code>*</code> operator fits one model that answers
+three questions simultaneously:</p>
+
+<ul>
+  <li>Does the memory type matter overall? (<code>term</code>)</li>
+  <li>Does the treatment group matter overall? (<code>group</code>)</li>
+  <li>Does the treatment's effect depend on which memory type was tested?
+      (<code>term:group</code> — the interaction)</li>
+</ul>
+
+<p>The results:</p>
+<pre>             Df Sum Sq Mean Sq F value Pr(&gt;F)
+term          1    0.7    0.72   0.189  0.664
+group         4   35.6    8.91   2.342  0.056 .
+term:group    4   13.7    3.42   0.900  0.465
+Residuals   190  722.3    3.80</pre>
+
+<p>Memory type alone (term) makes no significant difference (p = 0.664). The group
+effect is marginal (p = 0.056 — just above the threshold, marked with a dot). The
+interaction is not significant (p = 0.465), meaning the treatment's effect on correct
+entries does not depend on whether the short-term or long-term task was used.</p>
+
+<p>This single model replaces what would otherwise be two separate ANOVAs, uses all
+200 observations at once rather than 100, and explicitly tests the interaction —
+something separate tests cannot do. That is why it "leaves point-and-click behind":
+most simple software requires several separate tests to answer what R handles in one
+line.</p>
+
+
+<h2>12. The complete workflow in one view</h2>
+
+<p>Every slide, every function, every test fits into this sequence. Print or bookmark
+this page and use it to orient yourself whenever the slide discussion moves
+faster than expected.</p>
+
+<table>
+<tr><th style="width:5%">#</th><th style="width:30%">Question</th><th>R function</th></tr>
+<tr><td>1</td><td>Do I have the data in R?</td>
+    <td><code>read.csv("file.csv")</code></td></tr>
+<tr><td>2</td><td>What did R actually receive?</td>
+    <td><code>str(d)</code> · <code>head(d)</code></td></tr>
+<tr><td>3</td><td>What is the average for each group?</td>
+    <td><code>tapply(d$y, d$group, mean)</code></td></tr>
+<tr><td>4</td><td>Are the groups statistically different?</td>
+    <td><code>aov(y ~ group, data=d)</code> then <code>summary(fit)</code></td></tr>
+<tr><td>5</td><td>If yes — which specific groups differ?</td>
+    <td><code>TukeyHSD(fit)</code></td></tr>
+<tr><td>6</td><td>Was ANOVA the right test to use?</td>
+    <td><code>shapiro.test(residuals(fit))</code> ·
+        <code>bartlett.test(y ~ group, d)</code></td></tr>
+<tr><td>7</td><td>If not — what test should I use instead?</td>
+    <td><code>kruskal.test(y ~ group, data=d)</code></td></tr>
+<tr><td>8</td><td>Can I ask two questions at once?</td>
+    <td><code>aov(y ~ a * b, data=d)</code></td></tr>
+</table>
+
+<div class="box go">
+<span class="lbl">The most important idea</span>
+Try not to think of R as "doing statistics." Think of it as answering a sequence of
+questions. Each function answers exactly one question. Once you know which question
+each function answers, the analysis stops feeling like a wall of code and starts
+feeling like a conversation with your data.
+</div>
+
+<div class="foot">
+<strong>Version 1.0 — 30 July 2026.</strong> Companion to the slide presentation
+<em>Using R on Your Own Data</em> and the <em>R Statistics Cheat Sheet</em>.
+All R output shown here was produced by running the code in R 4.3.3 on the
+workshop demonstration dataset.<br>
+Corrections and additions are welcome — if a section is unclear or a term is missing,
+please mention it so the next version includes it.
+</div>
+
+</body>
+</html>

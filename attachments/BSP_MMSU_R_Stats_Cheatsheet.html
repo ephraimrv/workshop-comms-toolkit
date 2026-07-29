@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BSP–MMSU Workshop Series — R Statistics Cheat Sheet</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; font-size: 10pt;
+         line-height: 1.45; color: #1a1a1a; max-width: 720px; margin: 30px auto; padding: 0 18px; }
+  h1 { font-size: 16pt; margin: 0 0 3px 0; }
+  .sub { color: #666; font-size: 8.5pt; margin-bottom: 4px; }
+  .byline { color: #666; font-size: 8.5pt; border-bottom: 2px solid #333;
+            padding-bottom: 10px; margin-bottom: 16px; }
+  h2 { font-size: 11.5pt; margin: 22px 0 6px 0; padding-bottom: 3px; border-bottom: 1.5px solid #333; }
+  h3 { font-size: 10pt; margin: 14px 0 4px 0; color: #222; }
+  code { font-family: "SF Mono", Consolas, monospace; font-size: 9pt;
+         background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+  pre { background: #f6f6f6; border: 1px solid #ddd; border-left: 3px solid #999;
+        border-radius: 4px; padding: 9px 13px; font-size: 8.8pt; overflow-x: auto; line-height: 1.4; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+  td, th { vertical-align: top; padding: 5px 7px; border-bottom: 1px solid #e2e2e2; text-align: left; }
+  th { background: #f4f4f4; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.4px; }
+  td.fn { width: 30%; font-family: "SF Mono", Consolas, monospace; font-size: 8.6pt; }
+  .box { border-left: 3px solid #c9a227; background: #fdfaf0; padding: 9px 14px; margin: 12px 0; }
+  .box.stop { border-left-color: #c0392b; background: #fdf3f2; }
+  .box.go { border-left-color: #2e8b57; background: #f2faf5; }
+  .lbl { font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.5px;
+         display: block; margin-bottom: 3px; }
+  ul { margin: 5px 0; padding-left: 20px; } li { margin-bottom: 3px; }
+  .foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 8.5pt; color: #555; }
+  .toc { background: #f7f7f7; border: 1px solid #e0e0e0; border-radius: 5px; padding: 10px 16px; font-size: 9pt; }
+  .toc ol { margin: 4px 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1>R Statistics Cheat Sheet</h1>
+<div class="sub">Plain-language reference for the terms and functions used in the workshop</div>
+<div class="byline">
+BSP–MMSU Workshop Series · Understanding Molecular and Biological Data Through R<br>
+Balik Scientist Program · Mariano Marcos State University<br>
+BSP Fellow: Dr. Imelda L. Forteza<br>
+Author: Jan Ephraim R. Vallente, Research Assistant
+</div>
+
+<p>This sheet explains, in ordinary language, the statistical words and R functions you will
+meet in the workshop — what each one does, when to use it, and how to read its answer. Keep it
+open beside RStudio. It does not replace advice from a statistician; it helps you understand what
+you are seeing.</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ol>
+  <li>Reading an R command: the <code>~</code> symbol and friends</li>
+  <li>The p-value, and the significance stars</li>
+  <li>The tests, in plain language</li>
+  <li>Reading an ANOVA results table</li>
+  <li>Which test do I use?</li>
+  <li>The supporting functions</li>
+</ol>
+</div>
+
+<h2>1. Reading an R command: the <code>~</code> symbol and friends</h2>
+
+<p>Most statistical commands in R are written as a <strong>formula</strong> using the tilde
+<code>~</code>. Read the tilde as the words <strong>"depends on"</strong> or
+<strong>"by"</strong>:</p>
+
+<pre>aov(Locomotive ~ group, data = d)
+      ↑            ↑            ↑
+   what you    the grouping   the table to
+   measured    variable       find them in
+ (the outcome) (the cause)</pre>
+
+<p>So <code>Locomotive ~ group</code> means <em>"does Locomotive behaviour differ <strong>by</strong>
+group?"</em> The thing you measured goes on the <strong>left</strong>; the thing that might explain
+it goes on the <strong>right</strong>.</p>
+
+<table>
+<tr><th style="width:32%">In a formula</th><th>Means</th></tr>
+<tr><td class="fn">y ~ a</td><td>"y depends on a" — one explanatory variable</td></tr>
+<tr><td class="fn">y ~ a + b</td><td>"y depends on a and b" — two variables, each on its own</td></tr>
+<tr><td class="fn">y ~ a * b</td><td>a, b, <strong>and their interaction</strong> — whether the effect of one
+    depends on the other. Same as <code>a + b + a:b</code>.</td></tr>
+<tr><td class="fn">y ~ a:b</td><td>the interaction only</td></tr>
+<tr><td class="fn">data = d</td><td>"find these columns in the table named <code>d</code>"</td></tr>
+</table>
+
+<div class="box"><span class="lbl">Why this matters</span>
+The difference between <code>~ EMS + MO</code> and <code>~ EMS * MO</code> is the difference between
+"test each treatment" and "test each treatment <em>and</em> whether they combine." The
+<code>*</code> is how one command asks the richer question.</div>
+
+<h2>2. The p-value, and the significance stars</h2>
+
+<p>The <strong>p-value</strong> answers one question: <em>if there were really no effect, how often
+would plain luck alone produce a result at least this large?</em></p>
+<ul>
+  <li><strong>p below 0.05</strong> — rarely by luck, so the effect is <strong>probably real</strong>.</li>
+  <li><strong>p above 0.05</strong> — could easily be luck, so you <strong>cannot claim</strong> an effect.</li>
+</ul>
+<p>R prints little stars next to each p-value as a shorthand:</p>
+<pre>Signif. codes:  *** 0.001   ** 0.01   * 0.05   . 0.1   (blank) &gt; 0.1</pre>
+
+<div class="box stop"><span class="lbl">Three cautions</span>
+<ul>
+  <li>A p-value tells you <strong>whether</strong> there is an effect — <strong>not how big</strong>
+      or how important it is. Always look at the actual means too.</li>
+  <li>0.05 is a <strong>convention</strong>, not a law of nature. 0.049 and 0.051 are almost the same.</li>
+  <li>For the two <em>assumption checks</em> below (Shapiro, Bartlett), the meaning flips:
+      a <strong>small</strong> p-value is a <strong>warning</strong> that the assumption has failed.</li>
+</ul></div>
+
+<h2>3. The tests, in plain language</h2>
+
+<table>
+<tr><th style="width:26%">Function</th><th>What it does · how to read it</th></tr>
+<tr>
+  <td class="fn">aov(y ~ group)<br>summary(...)</td>
+  <td><strong>ANOVA</strong> (Analysis of Variance). Compares the averages of several groups at once
+      to ask "do any of them differ?" It works by weighing the variation <em>between</em> groups
+      against the random variation <em>within</em> them. Read the <code>Pr(&gt;F)</code> value — that is
+      your p-value. This is the test GraphPad runs for group comparisons.</td>
+</tr>
+<tr>
+  <td class="fn">TukeyHSD(...)</td>
+  <td><strong>Tukey's Honest Significant Difference.</strong> An ANOVA only says "a difference exists
+      <em>somewhere</em>." Tukey is the follow-up that says <strong>which specific pairs</strong> of
+      groups differ, giving each pair its own p-value (<code>p adj</code>) already corrected for the
+      fact that you are testing many pairs at once.</td>
+</tr>
+<tr>
+  <td class="fn">shapiro.test(...)</td>
+  <td><strong>Shapiro–Wilk test.</strong> Checks whether your data is roughly <strong>bell-shaped
+      (normal)</strong> — one thing ANOVA assumes. A p-value <strong>below</strong> 0.05 means "not
+      bell-shaped," i.e. a warning that plain ANOVA may not be trustworthy.</td>
+</tr>
+<tr>
+  <td class="fn">bartlett.test(...)</td>
+  <td><strong>Bartlett test.</strong> Checks whether the groups have a <strong>similar spread</strong>
+      (variance) — the other thing ANOVA assumes. Again, p <strong>below</strong> 0.05 is a warning
+      that the spreads differ too much for plain ANOVA.</td>
+</tr>
+<tr>
+  <td class="fn">kruskal.test(...)</td>
+  <td><strong>Kruskal–Wallis test.</strong> The <strong>back-up for ANOVA</strong> when Shapiro or
+      Bartlett flag a problem. It asks the same "do the groups differ?" question but makes no
+      bell-shape assumption — it works on the <em>ranking</em> of values instead of the values
+      themselves. Read its p-value the same way.</td>
+</tr>
+<tr>
+  <td class="fn">chisq.test(...)</td>
+  <td><strong>Chi-squared test.</strong> A different family: for <strong>counts in categories</strong>,
+      not measured numbers. Use it to ask "are these two categorical things related?" or "do these
+      category counts differ from what I'd expect?" (e.g. observed vs. expected numbers of each
+      behaviour type). Not interchangeable with ANOVA.</td>
+</tr>
+</table>
+
+<div class="box"><span class="lbl">"Chi-squared" appears in two places — don't confuse them</span>
+The <strong>chi-squared test</strong> above is for category counts. Separately, the Kruskal–Wallis
+output prints a line like <code>chi-squared = 9.65</code> — there, "chi-squared" is just the
+<em>statistic</em> Kruskal–Wallis uses to get its p-value, not a chi-squared test. Same
+mathematical curve, different tests.</div>
+
+<h2>4. Reading an ANOVA results table</h2>
+
+<pre>            Df Sum Sq Mean Sq F value Pr(&gt;F)
+group        3   1016   338.7   2.868 0.0692 .
+Residuals   16   1890   118.1</pre>
+
+<table>
+<tr><th style="width:24%">Column</th><th>What it means</th></tr>
+<tr><td class="fn">Df</td><td>Degrees of freedom. For groups: number of groups − 1. For residuals: number of rows − number of groups.</td></tr>
+<tr><td class="fn">Sum Sq / Mean Sq</td><td>How much variation is explained by the groups vs. left over as noise. <code>Mean Sq = Sum Sq ÷ Df</code>.</td></tr>
+<tr><td class="fn">F value</td><td>Group signal ÷ leftover noise. A bigger F means the groups are more separated relative to the noise.</td></tr>
+<tr><td class="fn">Pr(&gt;F)</td><td><strong>The p-value.</strong> Here 0.069 — above 0.05, so this result alone does not establish a difference.</td></tr>
+</table>
+<p><em>"Residuals"</em> is simply the leftover part of each measurement after removing its group average —
+the noise the test compares against.</p>
+
+<h2>5. Which test do I use?</h2>
+
+<table>
+<tr><th style="width:52%">Your question</th><th>Test</th></tr>
+<tr><td>Do the averages of 2 or more groups differ, and the data behaves (bell-shaped, similar spread)?</td><td><code>aov()</code> — ANOVA</td></tr>
+<tr><td>Same question, but the data does <strong>not</strong> behave?</td><td><code>kruskal.test()</code></td></tr>
+<tr><td>ANOVA was significant — <strong>which</strong> groups differ?</td><td><code>TukeyHSD()</code></td></tr>
+<tr><td>Two grouping factors at once, and whether they interact?</td><td><code>aov(y ~ a * b)</code></td></tr>
+<tr><td>Are two <strong>categorical</strong> variables (counts) related?</td><td><code>chisq.test()</code></td></tr>
+<tr><td>Is my data bell-shaped / equally spread (before trusting ANOVA)?</td><td><code>shapiro.test()</code> · <code>bartlett.test()</code></td></tr>
+</table>
+
+<h2>6. The supporting functions</h2>
+
+<table>
+<tr><th style="width:30%">Function</th><th>What it does</th></tr>
+<tr><td class="fn">read.csv("file.csv")</td><td>Loads a CSV file into R as a table (a "data frame").</td></tr>
+<tr><td class="fn">str(d)</td><td>"Structure" — lists each column and the type R gave it. Run it first, always.</td></tr>
+<tr><td class="fn">head(d)</td><td>Shows the first few rows, to eyeball what loaded.</td></tr>
+<tr><td class="fn">summary(...)</td><td>On data: a quick numeric overview. On a fitted model: the results table.</td></tr>
+<tr><td class="fn">tapply(d$y, d$group, mean)</td><td>Applies a function (here <code>mean</code>) to a column, split by group — quick group averages.</td></tr>
+<tr><td class="fn">factor(x, levels = ...)</td><td>Tells R a column is a set of categories, and fixes their display order.</td></tr>
+<tr><td class="fn">residuals(fit)</td><td>The leftover noise from a fitted model — what the assumption checks are run on.</td></tr>
+</table>
+
+<div class="box go"><span class="lbl">The workflow, in one line</span>
+Inspect (<code>str</code>, <code>head</code>, means) → compare (<code>aov</code>) → follow up
+(<code>TukeyHSD</code>) → check it was valid (<code>shapiro</code>, <code>bartlett</code>) → switch
+test if needed (<code>kruskal</code>). Each step is one short command.</div>
+
+<div class="foot">
+<strong>Version 1.0 — 30 July 2026.</strong> Companion to the workshop's <em>R Survival Guide</em> and
+the <em>Working With R</em> handout. Every R result quoted here was produced by running the code in
+R; test descriptions follow standard statistical usage and the official R documentation.<br>
+Corrections and additions are welcome — if a term you met is not covered here, please mention it so
+the next version includes it.
+</div>
+
+</body>
+</html>
