@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Using R on Your Own Data — Slides</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#666; --line:#333;
+    --gold:#c9a227; --goldbg:#fdfaf0;
+    --green:#2e8b57; --greenbg:#f2faf5;
+    --red:#c0392b; --redbg:#fdf3f2;
+    --blue:#2c6e8f; --bluebg:#eef6fb;
+    --grey:#f4f4f4; --greyline:#e2e2e2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{font-family:-apple-system,"Segoe UI",Arial,sans-serif; color:var(--ink);
+       background:#111; overflow:hidden;}
+  .stage{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;}
+  .slide{display:none; width:100%; height:100%; background:#fff; padding:5.5vh 6vw;
+         flex-direction:column; justify-content:center; animation:fade .25s ease;}
+  .slide.active{display:flex;}
+  @keyframes fade{from{opacity:0} to{opacity:1}}
+
+  h1{font-size:5vh; line-height:1.1; margin-bottom:2.2vh;}
+  h2{font-size:3.6vh; line-height:1.15; margin-bottom:2vh; padding-bottom:1.2vh;
+     border-bottom:3px solid var(--line);}
+  p,li{font-size:2.7vh; line-height:1.45;}
+  ul{padding-left:3vh; margin-top:.8vh;} li{margin-bottom:1.1vh;}
+  ol{padding-left:3.4vh;} ol li{margin-bottom:1.3vh; font-size:2.9vh;}
+  .lead{font-size:3.2vh; color:var(--muted); margin-top:.8vh;}
+  .big{font-size:4.2vh; font-weight:600; line-height:1.25;}
+  .tiny{font-size:2.05vh; color:var(--muted); margin-top:1.1vh;}
+  code,.mono{font-family:"SF Mono",Consolas,monospace;}
+  code{background:var(--grey); padding:.12em .38em; border-radius:3px; font-size:.9em;}
+  pre{background:#f6f6f6; border-left:5px solid #999; border-radius:5px;
+      padding:1.5vh 2vh; font-size:2.3vh; line-height:1.4; overflow:auto; margin:1.1vh 0;}
+  pre.code{border-left-color:var(--blue); background:#eef4f8; color:#0f3547;}
+  pre.out{border-left-color:#999; background:#f6f6f6;}
+  .em-green{color:var(--green); font-weight:700;}
+  .em-red{color:var(--red); font-weight:700;}
+  .em-gold{color:#9a7c1d; font-weight:700;}
+
+  .box{border-left:6px solid var(--gold); background:var(--goldbg);
+       padding:1.6vh 2.2vh; margin-top:1.3vh; border-radius:0 6px 6px 0;}
+  .box.go{border-left-color:var(--green); background:var(--greenbg);}
+  .box.stop{border-left-color:var(--red); background:var(--redbg);}
+  .box.plain{border-left-color:var(--blue); background:var(--bluebg);}
+  .box p, .box li{font-size:2.5vh;}
+  .plabel{font-weight:700; color:var(--blue); text-transform:uppercase;
+          letter-spacing:.5px; font-size:1.9vh; display:block; margin-bottom:.5vh;}
+
+  .cue{display:inline-block; margin-top:1.6vh; background:var(--ink); color:#fff;
+       font-size:2vh; font-weight:600; padding:.9vh 1.6vh; border-radius:6px; letter-spacing:.3px;}
+  .cue::before{content:"▶  DEMO · ";}
+
+  .cmp{display:grid; grid-template-columns:1fr 1fr; gap:3vw; margin-top:1.2vh;}
+  .cmp h3{font-size:2.5vh; margin-bottom:1vh;}
+  .cmp .bad h3{color:var(--red);} .cmp .good h3{color:var(--green);}
+  .grid{font-family:"SF Mono",Consolas,monospace; font-size:1.8vh; line-height:1.32;
+        border:2px solid var(--greyline); border-radius:6px; padding:1.4vh; background:#fafafa;}
+  .banner{background:#f6e6e6; color:#7a1f18; padding:.2vh .5vh; display:block; margin:.35vh 0;}
+  .rep{color:#b0b0b0;}
+  table.tidy{border-collapse:collapse; width:100%; font-family:"SF Mono",Consolas,monospace; font-size:1.8vh;}
+  table.tidy th{background:#e8eef4; border:1px solid #cdd7e2; padding:.6vh .5vh; font-weight:700;}
+  table.tidy td{border:1px solid var(--greyline); padding:.5vh .5vh; text-align:center;}
+
+  .verdict{display:flex; gap:2vw; margin:1.2vh 0;}
+  .verdict div{flex:1; padding:1.5vh; border-radius:8px; font-size:2.5vh;}
+  .verdict .real{background:var(--greenbg); border:2px solid var(--green);}
+  .verdict .luck{background:var(--redbg); border:2px solid var(--red);}
+
+  .cellmeans{display:inline-grid; grid-template-columns:auto auto auto; gap:.4vh 2.2vh;
+             font-family:"SF Mono",Consolas,monospace; font-size:2.6vh; margin:1vh 0;}
+  .hi{background:#fff3cd; padding:.05em .3em; border-radius:3px;}
+
+  .title-wrap{align-items:flex-start;}
+  .byline{margin-top:auto; color:var(--muted); font-size:2.3vh; line-height:1.5;
+          border-top:2px solid var(--line); padding-top:1.8vh;}
+
+  .counter{position:fixed; bottom:1.4vh; right:2vw; color:#bbb; font-size:1.9vh;
+           font-family:"SF Mono",Consolas,monospace; z-index:10;}
+  .hint{position:fixed; bottom:1.4vh; left:2vw; color:#bbb; font-size:1.8vh; z-index:10;}
+  .progress{position:fixed; top:0; left:0; height:5px; background:var(--gold); z-index:10; transition:width .2s;}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="stage">
+
+  <!-- 1 -->
+  <section class="slide active title-wrap">
+    <h1>Using R on your own data</h1>
+    <p class="lead">From a messy thesis spreadsheet to a complete analysis —<br>every command, in plain language.</p>
+    <div class="byline">
+      BSP–MMSU Workshop Series · Understanding Molecular and Biological Data Through R<br>
+      BSP Fellow: Dr. Imelda L. Forteza &nbsp;·&nbsp; Author: Jan Ephraim R. Vallente, Research Assistant
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <h2>The worry from the evaluation forms</h2>
+    <p class="big">"I don't think I can use this on my thesis."</p>
+    <div class="box"><p>The gap is <span class="em-gold">not</span> R, and it is not statistics.
+      It is the <span class="em-gold">shape of your data</span> — and that is entirely fixable.
+      By the end, R will have done a full analysis on real thesis data.</p></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <h2>Why R can't read a thesis spreadsheet directly</h2>
+    <p>A spreadsheet is usually built for a <span class="em-red">human's eye</span>:</p>
+    <ul>
+      <li>Group names sit in <b>banner rows</b>, not in a column</li>
+      <li>The header row <b>repeats</b> for every group and every day</li>
+      <li>Tallies are <b>tick-marks</b> (<code>\</code>), not numbers</li>
+      <li>Merged cells and blanks hide where a table starts and ends</li>
+    </ul>
+    <div class="box stop"><p>R reads a file as <b>one rectangle</b>: a single header row, then data.
+      A grid built for reading has no single rectangle — so R gives up.</p></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <h2>Same data — human layout vs. R layout</h2>
+    <div class="cmp">
+      <div class="bad">
+        <h3>✗ How it's often entered</h3>
+        <div class="grid">
+          <span class="banner">SHORT TERM &nbsp; WEEK 1</span>
+          <span class="banner">CONTROL</span>
+          R1&nbsp;&nbsp;<span class="rep">1,7,2,6,4,6,8</span>&nbsp;&nbsp;1.58&nbsp;&nbsp;4&nbsp;&nbsp;3<br>
+          R2&nbsp;&nbsp;<span class="rep">6,8,3,1,7,6,5,4</span>&nbsp;2.03&nbsp;&nbsp;4&nbsp;&nbsp;4<br>
+          <span class="banner">MO ONLY</span>
+          R1&nbsp;&nbsp;<span class="rep">4,6,8,1,4,1,7</span>&nbsp;&nbsp;4.01&nbsp;&nbsp;6&nbsp;&nbsp;1<br>
+          <span class="rep">…"MO Only" spelled two ways · arm path crammed in one cell…</span>
+        </div>
+      </div>
+      <div class="good">
+        <h3>✓ One tidy rectangle</h3>
+        <table class="tidy">
+          <tr><th>term</th><th>week</th><th>group</th><th>rep</th><th>time_min</th><th>correct</th><th>incorrect</th></tr>
+          <tr><td>short</td><td>1</td><td>CONTROL</td><td>1</td><td>1.58</td><td>4</td><td>3</td></tr>
+          <tr><td>short</td><td>1</td><td>CONTROL</td><td>2</td><td>2.03</td><td>4</td><td>4</td></tr>
+          <tr><td>short</td><td>1</td><td>MO_ONLY</td><td>1</td><td>4.01</td><td>6</td><td>1</td></tr>
+          <tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <h2>The three rules</h2>
+    <ul>
+      <li><span class="em-green">One row per trial</span> — here, one row per rat per test.</li>
+      <li><span class="em-green">One column per variable</span> — <code>term</code>, <code>week</code>, <code>group</code>, <code>replicate</code>
+          in their own columns, never as banners.</li>
+      <li><span class="em-green">One header row</span>, at the top, once. One value per cell —
+          no arm-path like <code>1,7,2,6,4,6,8</code> crammed into a single cell.</li>
+    </ul>
+    <div class="box go"><p>Every rule fixes one problem from the previous slide.
+      <b>This is the skill worth owning</b> — everything after is R doing the work.</p></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <h2>Save it as a CSV</h2>
+    <p>A <b>CSV</b> is your table saved as plain text — commas between the cells. Every
+       spreadsheet program makes one (Excel, Sheets, Numbers → Save As / Export → CSV).</p>
+    <pre class="out">term,week,group,replicate,time_min,correct,incorrect,...
+short,1,CONTROL,1,1.58,4,3,...
+short,1,CONTROL,2,2.03,4,4,...</pre>
+    <span class="cue">open the template, do Save As → CSV</span>
+  </section>
+
+  <!-- 7 : read + inspect -->
+  <section class="slide">
+    <h2>Step 1 — Read it, and look at it</h2>
+    <pre class="code">d &lt;- read.csv("ecig_memory.csv")            # load the file
+str(d)                                      # what did R read?
+head(d)                                     # first few rows
+short &lt;- subset(d, term == "short")        # short-term trials only
+tapply(short$correct, short$group, mean)    # group averages</pre>
+    <pre class="out">CONTROL  MO_ONLY  ECIG_ONLY  MO_ECIG  DPL_ECIG
+   6.05     6.35       5.95     4.90      5.35</pre>
+    <div class="box plain"><span class="plabel">In plain terms</span>
+      <p>Always look before testing. R already reads the file, reports every column's type,
+         and gives you the group averages — four commands in.</p></div>
+    <span class="cue">read.csv, str, head, tapply</span>
+  </section>
+
+  <!-- 8 : p-value primer -->
+  <section class="slide">
+    <h2>One number you'll see everywhere: the p-value</h2>
+    <div class="box plain"><span class="plabel">What it answers</span>
+      <p>If there were <b>really no difference</b> between groups, how often would plain luck
+         alone produce a gap this big?</p></div>
+    <div class="verdict">
+      <div class="real"><b>p below 0.05</b><br>rarely by luck →<br><span class="em-green">probably real</span></div>
+      <div class="luck"><b>p above 0.05</b><br>could easily be luck →<br><span class="em-red">can't claim it</span></div>
+    </div>
+    <p class="tiny">It tells you <b>whether</b> there's a difference — not how big, not how important. 0.05 is just the usual line.</p>
+  </section>
+
+  <!-- 9 : one-way ANOVA -->
+  <section class="slide">
+    <h2>Step 2 — Compare the groups (ANOVA)</h2>
+    <pre class="code">fit &lt;- aov(correct ~ group, data = short)
+summary(fit)</pre>
+    <pre class="out">            Df Sum Sq Mean Sq F value Pr(&gt;F)
+group        4   27.4    6.84   1.821  0.131
+Residuals   95  356.8    3.76</pre>
+    <div class="box plain"><span class="plabel">Reading it</span>
+      <p><b>F</b> = signal ÷ noise (bigger = groups more separated). <b>Pr(&gt;F)</b> is the p-value:
+         <b>0.131</b>, above 0.05 — this much difference in correct entries could be chance,
+         so we cannot claim a group effect yet. (This test is <b>ANOVA</b>; GraphPad runs the same one.)</p></div>
+    <span class="cue">run the ANOVA</span>
+  </section>
+
+  <!-- 10 : Tukey -->
+  <section class="slide">
+    <h2>Step 3 — Which groups differ? (post-hoc)</h2>
+    <pre class="code">TukeyHSD(aov(correct ~ group, data = short))</pre>
+    <pre class="out">                    diff    lwr    upr  p adj
+MO_ONLY-CONTROL     0.30  -1.40   2.00  0.988
+ECIG_ONLY-CONTROL  -0.10  -1.80   1.60  1.000
+MO_ECIG-CONTROL    -1.15  -2.85   0.55  0.337
+MO_ECIG-MO_ONLY    -1.45  -3.15   0.25  0.134</pre>
+    <div class="box plain"><span class="plabel">In plain terms</span>
+      <p>ANOVA says "a difference exists somewhere"; this says <b>which pairs</b>. The
+         <code>p adj</code> column is each pair's p-value, corrected for testing many at once.
+         Here no pair clears 0.05 — consistent with the borderline overall result.</p></div>
+    <span class="cue">run TukeyHSD</span>
+  </section>
+
+  <!-- 11 : assumptions -->
+  <section class="slide">
+    <h2>Step 4 — Is the standard test even valid?</h2>
+    <pre class="code">shapiro.test(residuals(fit))              # roughly bell-shaped?
+bartlett.test(correct ~ group, short)     # similar spread?</pre>
+    <pre class="out">Shapiro–Wilk:  W = 0.855,  p &lt; 0.001
+Bartlett:      K² = 30.45,  p &lt; 0.001</pre>
+    <div class="box stop"><p>Both p-values are <b>below 0.05</b> → the data does <b>not</b> behave the way
+       ANOVA assumes. So the p = 0.131 above is <b>not trustworthy here.</b></p></div>
+    <p class="tiny">(These two checks are named Shapiro–Wilk and Bartlett — the "is this test appropriate?" step.)</p>
+    <span class="cue">run both checks</span>
+  </section>
+
+  <!-- 12 : nonparametric + reversal -->
+  <section class="slide">
+    <h2>Step 5 — Use the test that fits</h2>
+    <pre class="code">kruskal.test(correct ~ group, data = short)</pre>
+    <pre class="out">chi-squared = 7.051,  df = 4,  p = 0.133</pre>
+    <div class="verdict">
+      <div class="luck">standard ANOVA<br><b>p = 0.131</b><br>"no difference"</div>
+      <div class="luck">the fitting test<br><b>p = 0.133</b><br>"same conclusion"</div>
+    </div>
+    <div class="box plain"><span class="plabel">The real lesson</span>
+      <p>Same data, <b>same conclusion</b> — but we only know that because we checked. Both assumption tests failed badly (p &lt; 0.001). If we had skipped the check and trusted ANOVA blindly, we would have been right by luck, not by method. Always check; you cannot know in advance whether the tests will agree.</p></div>
+  </section>
+
+  <!-- 13 : factorial power (stress) -->
+  <section class="slide">
+    <h2>Where R leaves point-and-click behind</h2>
+    <p>The data has two memory types: short-term and long-term. Instead of analysing each
+       separately, one factorial model tests <b>groups, memory type, and whether the group
+       effect differs between them</b> — three questions at once.</p>
+    <pre class="code">summary(aov(correct ~ term * group, data = d))</pre>
+    <pre class="out">             Df Sum Sq Mean Sq F value Pr(&gt;F)
+term          1    0.7    0.72   0.189  0.664
+group         4   35.6    8.91   2.342  0.056 .
+term:group    4   13.7    3.42   0.900  0.465
+Residuals   190  722.3    3.80</pre>
+    <div class="box plain"><span class="plabel">In plain terms</span>
+      <p>Short-term vs. long-term makes no overall difference (term p = 0.664).
+         The group effect is <b>marginal (p = 0.056)</b> — just above the line, but worth noting.
+         The non-significant interaction (p = 0.465) means each treatment's effect on
+         memory does not depend on which memory type was tested.
+         <span class="hi">MO_ECIG</span> shows the lowest correct entries in both terms (4.9 short, 5.4 long).</p></div>
+  </section>
+
+  <!-- 14 : factorial view on all rows -->
+  <section class="slide">
+    <h2>The factorial view sees what one test misses</h2>
+    <p>Run the <b>same</b> memory data as a factorial model instead of short-term alone:</p>
+    <pre class="code">summary(aov(correct ~ term * group, data = d))</pre>
+    <pre class="out">             Df Sum Sq Mean Sq F value Pr(&gt;F)
+term          1    0.7    0.72   0.189  0.664
+group         4   35.6    8.91   2.342  0.056 .
+term:group    4   13.7    3.42   0.900  0.465
+Residuals   190  722.3    3.80</pre>
+    <div class="box go"><p>The one-way on short-term alone gave p = 0.131 — no group effect.
+       The factorial model on all 200 rows pulls group to <b>p = 0.056</b> — a marginal signal that
+       using only half the data had hidden. Same data, more of it, sharper question.</p></div>
+    <span class="cue">run the two-way and compare</span>
+  </section>
+
+  <!-- 15 : the full recipe -->
+  <section class="slide">
+    <h2>The whole analysis, start to finish</h2>
+    <ol>
+      <li><b>Inspect</b> — <code>str</code>, <code>head</code>, group means, a boxplot</li>
+      <li><b>Compare groups</b> — <code>aov()</code> (ANOVA)</li>
+      <li><b>Find which pairs</b> — <code>TukeyHSD()</code></li>
+      <li><b>Check the test is valid</b> — <code>shapiro.test</code>, <code>bartlett.test</code></li>
+      <li><b>Switch test if needed</b> — <code>kruskal.test</code></li>
+      <li><b>Ask richer questions</b> — factorial <code>aov(y ~ A * B)</code></li>
+    </ol>
+    <div class="box go"><p>Every step is one short line. Together they are a <b>complete, defensible analysis</b> —
+       and all of it ran in base R, <b>no packages installed</b>.</p></div>
+  </section>
+
+  <!-- 16 : takeaway -->
+  <section class="slide">
+    <h2>The takeaway</h2>
+    <p class="big">The hard part is shaping your data.<br>That part you can own today.</p>
+    <div class="box go"><p>Lay your data out with the three rules → Save As CSV → <code>read.csv()</code>.
+       From there, R produces real analysis on <span class="em-green">your own</span> thesis data —
+       and far more of it than a single click ever gives you.</p></div>
+    <p class="lead" style="margin-top:1.4vh;">Deciding which result to trust comes with time, or with your statistician.
+       Getting your data R-ready, and seeing what R can do with it, is yours right now.</p>
+  </section>
+
+</div>
+
+<div class="counter" id="counter"></div>
+<div class="hint">← → to navigate · F for fullscreen</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var counter = document.getElementById('counter');
+  var progress = document.getElementById('progress');
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    counter.textContent = (i + 1) + ' / ' + slides.length;
+    progress.style.width = (i / (slides.length - 1) * 100) + '%';
+  }
+  function next(){ show(i + 1); } function prev(){ show(i - 1); }
+  document.addEventListener('keydown', function(e){
+    if (['ArrowRight','ArrowDown',' ','PageDown'].indexOf(e.key) > -1){ e.preventDefault(); next(); }
+    else if (['ArrowLeft','ArrowUp','PageUp'].indexOf(e.key) > -1){ e.preventDefault(); prev(); }
+    else if (e.key === 'Home'){ show(0); } else if (e.key === 'End'){ show(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F'){
+      if (!document.fullscreenElement){ document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); }
+    }
+  });
+  document.querySelector('.stage').addEventListener('click', function(e){
+    if (e.clientX > window.innerWidth / 2){ next(); } else { prev(); }
+  });
+  show(0);
+</script>
+</body>
+</html>
