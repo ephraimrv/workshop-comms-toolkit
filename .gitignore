@@ -33,3 +33,4 @@ Thumbs.db
 
 # --- raw reads -------------------------------------------------------------
 *.fastq.gz
+attachments/communications_log_*.html
