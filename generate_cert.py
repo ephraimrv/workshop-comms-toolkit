@@ -101,6 +101,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from pypdf import PdfReader, PdfWriter
+from pypdf._page import PageObject
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -131,16 +132,33 @@ def fitted_size(text: str, max_w: float, start: float = NAME_SIZE) -> float:
     return max(start * max_w / width_at_start, 8.0)
 
 
-def stamp(template_pdf: Path, name: str, serial: str) -> PdfReader:
+def stamp(template_pdf: Path, name: str, serial: str) -> PageObject:
     """Return the template's first page with name (centred) and serial stamped."""
     buf = io.BytesIO()
+
+    # Serial — white pill behind the text so it reads over any photo content
     c = canvas.Canvas(buf, pagesize=(PAGE_W, PAGE_H))
     c.setFont(FONT_NAME, fitted_size(name, SAFE_W))
     c.setFillColorRGB(0, 0, 0)
     c.drawCentredString(PAGE_W / 2.0, NAME_BASELINE_Y, name)
+
+    # Serial — white pill behind the text so it reads over any photo content
+    serial_x, serial_y = 11.0, 28.0
+    pad = 1.0
+    serial_w = pdfmetrics.stringWidth(serial, FONT_NAME, SERIAL_SIZE)
+    c.setFillColorRGB(1, 1, 1)  # white background
+    c.rect(
+        serial_x - pad,
+        serial_y - pad,
+        serial_w + 2 * pad,
+        SERIAL_SIZE + 2 * pad,
+        fill=1,
+        stroke=0,
+    )
+
     c.setFont(FONT_NAME, SERIAL_SIZE)
-    c.setFillColorRGB(0.45, 0.45, 0.45)
-    c.drawString(36.0, 28.0, serial)
+    c.setFillColorRGB(0.35, 0.35, 0.35)  # dark grey text
+    c.drawString(11.0, 29.0, serial)
     c.showPage()
     c.save()
     buf.seek(0)
