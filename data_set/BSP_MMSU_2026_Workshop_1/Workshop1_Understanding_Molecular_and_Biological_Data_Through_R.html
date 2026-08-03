@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="BSP–MMSU Workshop Series" />
+  <title>Workshop 1: Understanding Molecular and Biological Data Through R</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Workshop 1: Understanding Molecular and Biological
+Data Through R</h1>
+<p class="subtitle">Building Foundations for Data-Driven Biological
+Research</p>
+<p class="author">BSP–MMSU Workshop Series</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#how-to-use-this-notebook"
+id="toc-how-to-use-this-notebook">How to use this notebook</a>
+<ul>
+<li><a href="#files-used-in-this-workshop"
+id="toc-files-used-in-this-workshop">Files used in this
+workshop</a></li>
+</ul></li>
+<li><a href="#getting-started-in-rstudio"
+id="toc-getting-started-in-rstudio">1. Getting started in RStudio</a>
+<ul>
+<li><a href="#create-an-r-project" id="toc-create-an-r-project">1.1
+Create an R Project</a></li>
+<li><a href="#check-your-working-directory"
+id="toc-check-your-working-directory">1.2 Check your working
+directory</a></li>
+<li><a href="#list-the-files-in-your-project"
+id="toc-list-the-files-in-your-project">1.3 List the files in your
+project</a></li>
+</ul></li>
+<li><a href="#installing-and-loading-packages"
+id="toc-installing-and-loading-packages">2. Installing and loading
+packages</a>
+<ul>
+<li><a href="#install-packages" id="toc-install-packages">2.1 Install
+packages</a></li>
+</ul></li>
+<li><a href="#importing-research-data-into-r"
+id="toc-importing-research-data-into-r">3. Importing research data into
+R</a>
+<ul>
+<li><a href="#common-file-types" id="toc-common-file-types">3.1 Common
+file types</a></li>
+</ul></li>
+<li><a href="#getting-to-know-your-data"
+id="toc-getting-to-know-your-data">4. Getting to know your data</a>
+<ul>
+<li><a href="#first-look-functions" id="toc-first-look-functions">4.1
+First-look functions</a></li>
+</ul></li>
+<li><a href="#importing-and-inspecting-metadata"
+id="toc-importing-and-inspecting-metadata">5. Importing and inspecting
+metadata</a>
+<ul>
+<li><a href="#import-metadata-from-csv"
+id="toc-import-metadata-from-csv">5.1 Import metadata from CSV</a></li>
+<li><a href="#inspect-metadata" id="toc-inspect-metadata">5.2 Inspect
+metadata</a></li>
+<li><a href="#questions-to-ask" id="toc-questions-to-ask">5.3 Questions
+to ask</a></li>
+</ul></li>
+<li><a href="#importing-and-inspecting-a-feature-table"
+id="toc-importing-and-inspecting-a-feature-table">6. Importing and
+inspecting a feature table</a>
+<ul>
+<li><a href="#import-a-feature-table"
+id="toc-import-a-feature-table">6.1 Import a feature table</a></li>
+<li><a href="#inspect-the-feature-table"
+id="toc-inspect-the-feature-table">6.2 Inspect the feature
+table</a></li>
+<li><a href="#questions-to-ask-1" id="toc-questions-to-ask-1">6.3
+Questions to ask</a></li>
+</ul></li>
+<li><a href="#importing-taxonomy-information"
+id="toc-importing-taxonomy-information">7. Importing taxonomy
+information</a>
+<ul>
+<li><a href="#import-taxonomy-table" id="toc-import-taxonomy-table">7.1
+Import taxonomy table</a></li>
+<li><a href="#inspect-taxonomy-table"
+id="toc-inspect-taxonomy-table">7.2 Inspect taxonomy table</a></li>
+<li><a href="#questions-to-ask-2" id="toc-questions-to-ask-2">7.3
+Questions to ask</a></li>
+</ul></li>
+<li><a href="#reading-fasta-files" id="toc-reading-fasta-files">8.
+Reading FASTA files</a>
+<ul>
+<li><a href="#import-fasta" id="toc-import-fasta">8.1 Import
+FASTA</a></li>
+<li><a href="#inspect-fasta" id="toc-inspect-fasta">8.2 Inspect
+FASTA</a></li>
+<li><a href="#questions-to-ask-3" id="toc-questions-to-ask-3">8.3
+Questions to ask</a></li>
+</ul></li>
+<li><a href="#reading-fastq-files" id="toc-reading-fastq-files">9.
+Reading FASTQ files</a>
+<ul>
+<li><a href="#import-fastq" id="toc-import-fastq">9.1 Import
+FASTQ</a></li>
+<li><a href="#inspect-fastq" id="toc-inspect-fastq">9.2 Inspect
+FASTQ</a></li>
+<li><a href="#read-lengths" id="toc-read-lengths">9.3 Read
+lengths</a></li>
+<li><a href="#questions-to-ask-4" id="toc-questions-to-ask-4">9.4
+Questions to ask</a></li>
+</ul></li>
+<li><a href="#optional-reading-a-tree-file"
+id="toc-optional-reading-a-tree-file">10. Optional: Reading a tree
+file</a></li>
+<li><a href="#common-beginner-errors"
+id="toc-common-beginner-errors">11. Common beginner errors</a>
+<ul>
+<li><a href="#file-not-found" id="toc-file-not-found">11.1 File not
+found</a></li>
+<li><a href="#package-not-found" id="toc-package-not-found">11.2 Package
+not found</a></li>
+<li><a href="#object-not-found" id="toc-object-not-found">11.3 Object
+not found</a></li>
+</ul></li>
+<li><a href="#if-i-were-learning-r-today"
+id="toc-if-i-were-learning-r-today">12. If I Were Learning R Today</a>
+<ul>
+<li><a href="#lessons-from-the-age-of-ai"
+id="toc-lessons-from-the-age-of-ai">Lessons from the Age of AI</a></li>
+</ul></li>
+<li><a href="#workshop-1-wrap-up" id="toc-workshop-1-wrap-up">13.
+Workshop 1 wrap-up</a>
+<ul>
+<li><a href="#next-workshop" id="toc-next-workshop">Next
+workshop</a></li>
+</ul></li>
+<li><a href="#try-this-with-your-own-data"
+id="toc-try-this-with-your-own-data">14. Try this with your own data</a>
+<ul>
+<li><a href="#for-spreadsheet-based-data"
+id="toc-for-spreadsheet-based-data">14.1 For spreadsheet-based
+data</a></li>
+<li><a href="#for-excel-data" id="toc-for-excel-data">14.2 For Excel
+data</a></li>
+<li><a href="#for-sequence-data" id="toc-for-sequence-data">14.3 For
+sequence data</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="how-to-use-this-notebook">How to use this notebook</h1>
+<p>This notebook is the hands-on companion for <strong>Workshop 1:
+Understanding Molecular and Biological Data Through R</strong>.</p>
+<p>The goal is not to memorize R syntax. The goal is to become
+comfortable with the workflow of working with biological research
+data:</p>
+<pre class="text"><code>Create an R Project
+        ↓
+Organize your files
+        ↓
+Import data into R
+        ↓
+Inspect the data
+        ↓
+Understand what the files represent
+        ↓
+Prepare for downstream analysis</code></pre>
+<blockquote>
+<p><strong>Core message:</strong> Understanding your data comes before
+analyzing your data.</p>
+</blockquote>
+<h2 id="files-used-in-this-workshop">Files used in this workshop</h2>
+<p>Your workshop folder may contain molecular and general biological
+datasets. The exact filenames may vary, but the expected folder
+structure is:</p>
+<pre class="text"><code>Workshop1/
+├── data/
+│   ├── metadata.csv
+│   ├── otu_table.csv
+│   ├── silva_taxa.csv
+│   ├── tree.nwk
+│   ├── reference.fasta
+│   ├── Mock_R1.fastq.gz
+│   └── Mock_R2.fastq.gz
+├── scripts/
+├── figures/
+├── output/
+└── README.md</code></pre>
+<p>If your files have different names, update the file paths in the code
+chunks.</p>
+<hr />
+<h1 id="getting-started-in-rstudio">1. Getting started in RStudio</h1>
+<h2 id="create-an-r-project">1.1 Create an R Project</h2>
+<p>In RStudio:</p>
+<pre class="text"><code>File → New Project → Existing Directory or New Directory</code></pre>
+<p>Choose or create a folder called:</p>
+<pre class="text"><code>Workshop1</code></pre>
+<p>An R Project helps R know where your files are. This reduces problems
+with file paths and working directories.</p>
+<blockquote>
+<p><strong>Pro Tip:</strong> Start every new research project with an R
+Project. It keeps your files organized and makes your work easier to
+reproduce.</p>
+</blockquote>
+<h2 id="check-your-working-directory">1.2 Check your working
+directory</h2>
+<p>The working directory is the folder where R is currently looking for
+files.</p>
+<p><code>{r check-working-directory, eval=FALSE} getwd()</code></p>
+<p>If you are using an R Project, the working directory should usually
+be your project folder.</p>
+<h2 id="list-the-files-in-your-project">1.3 List the files in your
+project</h2>
+<p><code>{r list-files, eval=FALSE} list.files()</code></p>
+<p>Check the files inside the <code>data/</code> folder:</p>
+<p><code>{r list-data-files, eval=FALSE} list.files("data")</code></p>
+<p>If R cannot find your data, this is one of the first commands to
+run.</p>
+<blockquote>
+<p><strong>Pro Tip:</strong> Always check <code>getwd()</code> and
+<code>list.files()</code> before importing files. Many beginner errors
+are simply file path problems.</p>
+</blockquote>
+<hr />
+<h1 id="installing-and-loading-packages">2. Installing and loading
+packages</h1>
+<p>Packages add functions to R. You usually install a package once, but
+you load it every session.</p>
+<h2 id="install-packages">2.1 Install packages</h2>
+<p>Run these only if the packages are not yet installed.</p>
+<p>```{r install-packages, eval=FALSE} install.packages(“readr”)
+install.packages(“readxl”) install.packages(“dplyr”)
+install.packages(“BiocManager”)</p>
+<p>BiocManager::install(“Biostrings”)
+BiocManager::install(“ShortRead”)</p>
+<pre><code>
+## 2.2 Load packages
+
+Run these at the start of your analysis session.
+
+```{r load-packages, eval=FALSE}
+library(readr)
+library(readxl)
+library(dplyr)
+library(Biostrings)
+library(ShortRead)</code></pre>
+<blockquote>
+<p><strong>Pro Tip:</strong> Install once. Load every session.</p>
+</blockquote>
+<hr />
+<h1 id="importing-research-data-into-r">3. Importing research data into
+R</h1>
+<p>Before importing a file, ask three questions:</p>
+<ol type="1">
+<li>What is the file extension?</li>
+<li>Which package reads this file?</li>
+<li>Do I need to decompress it, or can R read it directly?</li>
+</ol>
+<h2 id="common-file-types">3.1 Common file types</h2>
+<table>
+<thead>
+<tr class="header">
+<th>File type</th>
+<th>What it usually contains</th>
+<th>Common R function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.csv</code></td>
+<td>Comma-separated spreadsheet data</td>
+<td><code>read_csv()</code></td>
+</tr>
+<tr class="even">
+<td><code>.xlsx</code></td>
+<td>Excel workbook</td>
+<td><code>read_excel()</code></td>
+</tr>
+<tr class="odd">
+<td><code>.tsv</code></td>
+<td>Tab-separated spreadsheet data</td>
+<td><code>read_tsv()</code></td>
+</tr>
+<tr class="even">
+<td><code>.txt</code></td>
+<td>Plain text data</td>
+<td><code>read_delim()</code> or <code>read.table()</code></td>
+</tr>
+<tr class="odd">
+<td><code>.fasta</code></td>
+<td>DNA or protein sequences</td>
+<td><code>readDNAStringSet()</code></td>
+</tr>
+<tr class="even">
+<td><code>.fastq.gz</code></td>
+<td>Compressed raw sequencing reads</td>
+<td><code>readFastq()</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Pro Tip:</strong> A <code>.fastq.gz</code> file does not need
+to be decompressed before reading it in R.
+<code>ShortRead::readFastq()</code> can read compressed FASTQ files
+directly.</p>
+</blockquote>
+<hr />
+<h1 id="getting-to-know-your-data">4. Getting to know your data</h1>
+<p>After importing any dataset, inspect it before doing analysis.</p>
+<h2 id="first-look-functions">4.1 First-look functions</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Question</th>
+<th>Useful functions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>What does the data look like?</td>
+<td><code>head()</code>, <code>tail()</code>, <code>View()</code></td>
+</tr>
+<tr class="even">
+<td>How big is the dataset?</td>
+<td><code>dim()</code>, <code>nrow()</code>, <code>ncol()</code></td>
+</tr>
+<tr class="odd">
+<td>What variables do I have?</td>
+<td><code>names()</code>, <code>colnames()</code></td>
+</tr>
+<tr class="even">
+<td>What data types are present?</td>
+<td><code>str()</code></td>
+</tr>
+<tr class="odd">
+<td>What are the basic summaries?</td>
+<td><code>summary()</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Pro Tip:</strong> Never start plotting or running statistics
+until you have looked at your data first.</p>
+</blockquote>
+<hr />
+<h1 id="importing-and-inspecting-metadata">5. Importing and inspecting
+metadata</h1>
+<p>Metadata describe your samples or observations. They provide the
+context needed to interpret your data.</p>
+<p>For example, metadata may contain:</p>
+<ul>
+<li>Sample ID</li>
+<li>Site</li>
+<li>Treatment</li>
+<li>Replicate</li>
+<li>Host organism</li>
+<li>Collection date</li>
+<li>Environmental variables</li>
+</ul>
+<h2 id="import-metadata-from-csv">5.1 Import metadata from CSV</h2>
+<p><code>{r import-metadata-csv, eval=FALSE} metadata &lt;- read_csv("data/metadata.csv")</code></p>
+<h2 id="inspect-metadata">5.2 Inspect metadata</h2>
+<p><code>{r inspect-metadata, eval=FALSE} head(metadata) tail(metadata) dim(metadata) names(metadata) str(metadata) summary(metadata)</code></p>
+<p>Open the metadata in a spreadsheet-like viewer:</p>
+<p><code>{r view-metadata, eval=FALSE} View(metadata)</code></p>
+<h2 id="questions-to-ask">5.3 Questions to ask</h2>
+<ul>
+<li>How many samples are in the dataset?</li>
+<li>How many variables are present?</li>
+<li>Which variables are categorical?</li>
+<li>Which variables are numeric?</li>
+<li>Are there missing values?</li>
+<li>Are the sample names consistent?</li>
+</ul>
+<blockquote>
+<p><strong>Pro Tip:</strong> Metadata are often more valuable than you
+think. They explain what your samples actually represent.</p>
+</blockquote>
+<hr />
+<h1 id="importing-and-inspecting-a-feature-table">6. Importing and
+inspecting a feature table</h1>
+<p>A feature table is a structured table of biological measurements.</p>
+<p>In microbiome data, it may look like this:</p>
+<ul>
+<li>Rows = taxa, ASVs, OTUs, or biological features</li>
+<li>Columns = samples</li>
+<li>Cells = counts or abundances</li>
+</ul>
+<p>In other biological research, a similar table might contain genes,
+species, metabolites, traits, or measurements.</p>
+<h2 id="import-a-feature-table">6.1 Import a feature table</h2>
+<p><code>{r import-feature-table, eval=FALSE} otu &lt;- read_csv("data/otu_table.csv")</code></p>
+<h2 id="inspect-the-feature-table">6.2 Inspect the feature table</h2>
+<p><code>{r inspect-feature-table, eval=FALSE} head(otu) dim(otu) names(otu) str(otu) summary(otu)</code></p>
+<h2 id="questions-to-ask-1">6.3 Questions to ask</h2>
+<ul>
+<li>What do the rows represent?</li>
+<li>What do the columns represent?</li>
+<li>Are sample names consistent with the metadata?</li>
+<li>Are the values counts, proportions, or measurements?</li>
+<li>Is the table in the orientation expected by the next analysis
+step?</li>
+</ul>
+<blockquote>
+<p><strong>Pro Tip:</strong> Before plotting or running statistics,
+inspect the dimensions, column names, and a few rows of your table.</p>
+</blockquote>
+<hr />
+<h1 id="importing-taxonomy-information">7. Importing taxonomy
+information</h1>
+<p>Taxonomy files connect feature IDs to biological names.</p>
+<p>For example, a taxonomy table may connect an OTU or ASV ID to:</p>
+<ul>
+<li>Kingdom</li>
+<li>Phylum</li>
+<li>Class</li>
+<li>Order</li>
+<li>Family</li>
+<li>Genus</li>
+<li>Species</li>
+</ul>
+<h2 id="import-taxonomy-table">7.1 Import taxonomy table</h2>
+<p><code>{r import-taxonomy, eval=FALSE} taxonomy &lt;- read_csv("data/silva_taxa.csv")</code></p>
+<h2 id="inspect-taxonomy-table">7.2 Inspect taxonomy table</h2>
+<p><code>{r inspect-taxonomy, eval=FALSE} head(taxonomy) dim(taxonomy) names(taxonomy) str(taxonomy)</code></p>
+<h2 id="questions-to-ask-2">7.3 Questions to ask</h2>
+<ul>
+<li>Which column contains the feature ID?</li>
+<li>Which columns contain taxonomy levels?</li>
+<li>Are the feature IDs consistent with the feature table?</li>
+<li>Are there unknown or unclassified taxa?</li>
+</ul>
+<hr />
+<h1 id="reading-fasta-files">8. Reading FASTA files</h1>
+<p>A FASTA file is a plain text sequence file. It may contain DNA, RNA,
+or protein sequences.</p>
+<p>A FASTA record usually has:</p>
+<pre class="text"><code>&gt;sequence_name
+ATGCGTACGTAGCTAGCTAG</code></pre>
+<h2 id="import-fasta">8.1 Import FASTA</h2>
+<p><code>{r read-fasta, eval=FALSE} fasta &lt;- readDNAStringSet("data/reference.fasta")</code></p>
+<h2 id="inspect-fasta">8.2 Inspect FASTA</h2>
+<p><code>{r inspect-fasta, eval=FALSE} fasta length(fasta) names(fasta)[1:5] width(fasta)[1:5]</code></p>
+<h2 id="questions-to-ask-3">8.3 Questions to ask</h2>
+<ul>
+<li>How many sequences are present?</li>
+<li>What are the sequence names?</li>
+<li>How long are the sequences?</li>
+<li>What do these sequences represent?</li>
+</ul>
+<blockquote>
+<p><strong>Pro Tip:</strong> A <code>.fasta</code> file is usually plain
+text. You can often open it with a text editor, but R gives you better
+tools for inspecting many sequences at once.</p>
+</blockquote>
+<hr />
+<h1 id="reading-fastq-files">9. Reading FASTQ files</h1>
+<p>FASTQ files contain raw sequencing reads. Each read has:</p>
+<ol type="1">
+<li>A read identifier</li>
+<li>A DNA sequence</li>
+<li>A separator line</li>
+<li>Quality scores</li>
+</ol>
+<p>FASTQ files are often compressed as <code>.fastq.gz</code>.</p>
+<h2 id="import-fastq">9.1 Import FASTQ</h2>
+<p><code>{r read-fastq, eval=FALSE} reads &lt;- readFastq("data/Mock_R1.fastq.gz")</code></p>
+<h2 id="inspect-fastq">9.2 Inspect FASTQ</h2>
+<p><code>{r inspect-fastq, eval=FALSE} reads length(reads) id(reads)[1:3] sread(reads)[1:3] quality(reads)[1:3]</code></p>
+<h2 id="read-lengths">9.3 Read lengths</h2>
+<p><code>{r fastq-read-lengths, eval=FALSE} read_lengths &lt;- width(sread(reads)) head(read_lengths) summary(read_lengths)</code></p>
+<h2 id="questions-to-ask-4">9.4 Questions to ask</h2>
+<ul>
+<li>How many reads are in the file?</li>
+<li>What do the read identifiers look like?</li>
+<li>How long are the reads?</li>
+<li>What do the quality scores represent?</li>
+</ul>
+<blockquote>
+<p><strong>Pro Tip:</strong> Inspect your raw data before analysis. Raw
+files often explain problems that appear later in the workflow.</p>
+</blockquote>
+<hr />
+<h1 id="optional-reading-a-tree-file">10. Optional: Reading a tree
+file</h1>
+<p>A <code>.nwk</code> file stores a phylogenetic tree in Newick
+format.</p>
+<p>This will be more useful in later workshops, but it is helpful to
+recognize the file type now.</p>
+<p><code>{r read-tree-optional, eval=FALSE} # Optional package if needed later: # install.packages("ape") # library(ape) # tree &lt;- read.tree("data/tree.nwk") # tree</code></p>
+<blockquote>
+<p><strong>Note:</strong> Workshop 1 focuses on recognizing and
+inspecting files. Detailed tree analysis belongs in a later
+workshop.</p>
+</blockquote>
+<hr />
+<h1 id="common-beginner-errors">11. Common beginner errors</h1>
+<p>Errors are part of working in R. They are not a sign of failure.</p>
+<h2 id="file-not-found">11.1 File not found</h2>
+<p>This usually means the path or filename is wrong.</p>
+<p><code>{r file-not-found-example, eval=FALSE} read_csv("data/metadta.csv")</code></p>
+<p>Check:</p>
+<p><code>{r troubleshoot-files, eval=FALSE} getwd() list.files() list.files("data")</code></p>
+<h2 id="package-not-found">11.2 Package not found</h2>
+<p>This usually means the package is not installed.</p>
+<p><code>{r package-not-found-example, eval=FALSE} library(readxl)</code></p>
+<p>If needed:</p>
+<p><code>{r install-readxl-example, eval=FALSE} install.packages("readxl") library(readxl)</code></p>
+<h2 id="object-not-found">11.3 Object not found</h2>
+<p>This usually means the object was not created or the previous code
+chunk did not run.</p>
+<p><code>{r object-not-found-example, eval=FALSE} head(my_data)</code></p>
+<p>Check the Environment pane and make sure the import code ran
+successfully.</p>
+<blockquote>
+<p><strong>Pro Tip:</strong> Errors are clues, not failures. Read the
+message carefully before trying to fix the code.</p>
+</blockquote>
+<hr />
+<h1 id="if-i-were-learning-r-today">12. If I Were Learning R Today</h1>
+<h2 id="lessons-from-the-age-of-ai">Lessons from the Age of AI</h2>
+<p>If I were learning R today, I would focus on habits rather than
+memorization.</p>
+<ol type="1">
+<li>Start with your data, not with R.</li>
+<li>Learn the workflow, not just the functions.</li>
+<li>Use AI to explain code, but not to replace scientific thinking.</li>
+<li>Read error messages carefully.</li>
+<li>Keep every project organized from the beginning.</li>
+<li>Document what you do.</li>
+</ol>
+<blockquote>
+<p><strong>BSP Tip:</strong> R helps you work with data. AI can help you
+learn R. Neither replaces biological understanding.</p>
+</blockquote>
+<hr />
+<h1 id="workshop-1-wrap-up">13. Workshop 1 wrap-up</h1>
+<p>Today you practiced how to:</p>
+<ul>
+<li>Create and work inside an R Project</li>
+<li>Organize a research folder</li>
+<li>Check your working directory</li>
+<li>Import common biological data files</li>
+<li>Inspect metadata and feature tables</li>
+<li>Recognize FASTA and FASTQ sequence files</li>
+<li>Use first-look functions such as <code>head()</code>,
+<code>tail()</code>, <code>dim()</code>, <code>str()</code>, and
+<code>summary()</code></li>
+</ul>
+<p>The goal was not to master every function. The goal was to become
+more comfortable working with biological data in R.</p>
+<h2 id="next-workshop">Next workshop</h2>
+<p>In Workshop 2, we move from understanding files to exploring,
+managing, and visualizing biological data.</p>
+<pre class="text"><code>Workshop 1: Understand your data
+        ↓
+Workshop 2: Explore and visualize your data
+        ↓
+Workshop 3: Interpret and communicate your data</code></pre>
+<hr />
+<h1 id="try-this-with-your-own-data">14. Try this with your own
+data</h1>
+<p>After the workshop, try replacing the example files with your own
+dataset.</p>
+<h2 id="for-spreadsheet-based-data">14.1 For spreadsheet-based data</h2>
+<p><code>{r own-csv-template, eval=FALSE} my_data &lt;- read_csv("data/my_dataset.csv") head(my_data) dim(my_data) str(my_data) summary(my_data)</code></p>
+<h2 id="for-excel-data">14.2 For Excel data</h2>
+<p><code>{r own-excel-template, eval=FALSE} my_data &lt;- read_excel("data/my_dataset.xlsx") head(my_data) dim(my_data) str(my_data) summary(my_data)</code></p>
+<h2 id="for-sequence-data">14.3 For sequence data</h2>
+<p><code>{r own-sequence-template, eval=FALSE} my_fasta &lt;- readDNAStringSet("data/my_sequences.fasta") my_fasta</code></p>
+<blockquote>
+<p><strong>Final Pro Tip:</strong> If your own dataset looks different
+from today’s examples, that is expected. The workflow remains the same:
+organize, import, inspect, understand, then analyze.</p>
+</blockquote>
+</body>
+</html>
