@@ -40,3 +40,8 @@ attachments/communications_log_*.html
 # --- demo folder -----------------------------------------------------------
 data_set/BSP_MMSU_2026_Workshop_2/demo
 
+# --- certificate generation ------------------------------------------------
+templates/
+certs/
+
+
