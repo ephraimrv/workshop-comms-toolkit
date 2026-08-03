@@ -6,8 +6,11 @@ email reappears each time that person submits, once per session they
 respond for. There is no session column; session membership is derived
 from each row's submission timestamp (see Deriving session below).
 Emits one row per DISTINCT person with a derived tier, ready for
-``generate_cert.py``: columns ``name``, ``email``, ``tier``, plus
-``sessions_attended`` for a human to audit the result.
+``generate_cert.py``: columns ``name``, ``email``, ``tier``,
+``sessions_attended`` (the count, for a human to audit the result),
+and ``sessions`` (the distinct session numbers themselves, sorted and
+semicolon-joined, which generate_cert.py reads to issue one attendance
+certificate per session attended).
 
 This tool does not know what a "workshop" is beyond a count of
 sessions. The session date ranges and the number of sessions required
@@ -271,7 +274,9 @@ def main(argv: list[str] | None = None) -> int:
 
     problems: list[str] = []
     sessions_by_email: dict[str, set[int]] = defaultdict(set)
-    latest_name_by_email: dict[str, tuple] = {}  # email -> (timestamp_or_None, name)
+    latest_name_by_email: dict[str, tuple[datetime | None, str]] = (
+        {}
+    )  # email -> (timestamp_or_None, name)
     name_variants_by_normalised_name: dict[str, set[str]] = defaultdict(set)
 
     for lineno, row in enumerate(raw_rows, start=2):
@@ -351,12 +356,18 @@ def main(argv: list[str] | None = None) -> int:
                 "email": email,
                 "tier": tier,
                 "sessions_attended": n_sessions,
+                # The distinct session numbers themselves, sorted and
+                # semicolon-joined, so generate_cert.py can issue one attendance
+                # certificate PER session. sessions_attended is the count of
+                # this set and stays for human audit; downstream reads this.
+                "sessions": ";".join(str(s) for s in sorted(sessions_by_email[email])),
             }
         )
 
     with args.out.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(
-            f, fieldnames=["name", "email", "tier", "sessions_attended"]
+            f,
+            fieldnames=["name", "email", "tier", "sessions_attended", "sessions"],
         )
         writer.writeheader()
         writer.writerows(out_rows)
