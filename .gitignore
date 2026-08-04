@@ -13,8 +13,8 @@ participants*.csv
 *.env
 
 # --- Generated output ------------------------------------------------------
-Communications_Log*.html
-Communications_Log*.pdf
+communications_log*.html
+communications_log*.pdf
 
 # --- Python ----------------------------------------------------------------
 __pycache__/
