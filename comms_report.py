@@ -40,7 +40,7 @@ Render only the communications belonging to one session, leaving the default
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.2.0"
+__version__ = "1.4.0"
 
 import argparse
 import html
@@ -152,15 +152,54 @@ def count_log_lines(path: Path) -> int | None:
 
 
 def attachments_of(record: dict) -> list[str]:
-    """Return every attachment name referenced by a record, in order."""
-    names = list(record.get("attachments") or [])
-    names += list(record.get("shared_attachments") or [])
-    per = record.get("per_recipient_attachments")
-    if isinstance(per, dict) and per.get("dir"):
+    """Return every attachment name referenced by a single record, in order."""
+    return aggregate_attachments([record])
+
+
+def aggregate_attachments(runs: list[dict]) -> list[str]:
+    """Return the attachment labels for a campaign spanning one or more runs.
+
+    Named attachments are identical across the runs of a campaign, so they are
+    taken from the final run. Per-recipient attachments are not: each run
+    generates a file per recipient it serves, so their counts are summed.
+    Reading the count from a single run understates a resumed campaign by
+    however many files its earlier runs produced.
+    """
+    if not runs:
+        return []
+
+    last = runs[-1]
+    names = list(last.get("attachments") or [])
+    names += list(last.get("shared_attachments") or [])
+
+    total = 0
+    directory: str | None = None
+    for run in runs:
+        per = run.get("per_recipient_attachments")
+        if not isinstance(per, dict) or not per.get("dir"):
+            continue
+        directory = directory or per["dir"]
         count = per.get("count")
-        suffix = f" ({count} files)" if count else ""
-        names.append(f"[per recipient: {per['dir']}/]{suffix}")
+        if isinstance(count, int):
+            total += count
+
+    if directory is not None:
+        suffix = f" ({total} {'file' if total == 1 else 'files'})" if total else ""
+        names.append(f"[per recipient: {directory}/]{suffix}")
     return names
+
+
+def display_attachment(name: str) -> str:
+    """Return an attachment's display label.
+
+    Most entries are paths, of which only the final component is shown. The
+    per-recipient marker produced by :func:`attachments_of` is not a path and
+    is passed through intact; running it through ``Path().name`` would split it
+    on the directory separator it contains and discard everything before it.
+    """
+    if name.startswith("["):
+        return name
+    return Path(name).name
 
 
 def group_runs(records: list[dict]) -> list[dict]:
@@ -190,7 +229,7 @@ def group_runs(records: list[dict]) -> list[dict]:
                 "sent_log": last.get("sent_log"),
                 "notes": last.get("notes", ""),
                 "meta": last.get("meta", {}),
-                "attachments": attachments_of(last),
+                "attachments": aggregate_attachments(runs),    # was attachments_of(last)
                 "total_sent": sum(r["sent_this_run"] for r in runs),
                 "total_failures": sum(r["failures"] for r in runs),
             }
@@ -336,14 +375,15 @@ def render(
             "participants</div>"
         ),
         (
-            f'<div class="byline">{e(programme)}<br>Programme Lead: {e(lead)}<br>'
-            f"Document Owner: {e(owner)}<br>"
+            f'<div class="byline">{e(programme)}<br>BSP Fellow: {e(lead)}<br>'
+            f"Prepared by: {e(owner)}<br>"
             f"Generated {generated:%d %B %Y}</div>"
         ),
     ]
 
     total_campaigns = len(campaigns)
     total_messages = sum(c["total_sent"] for c in campaigns)
+    untagged = [c for c in campaigns if (c.get("meta") or {}).get("session") is None]
     out.append("<h2>Summary</h2>")
     out.append(
         f"<p>This record covers <strong>{total_campaigns}</strong> campaign(s) "
@@ -351,6 +391,15 @@ def render(
         f"Recipient addresses are held separately and are deliberately excluded "
         f"from this document.</p>"
     )
+    if untagged and session is None:
+        out.append(
+            f"<p><strong>Scope note:</strong> {len(untagged)} of the "
+            f"{total_campaigns} campaign(s) recorded here are programme-wide "
+            f"communications issued outside the numbered session structure, and "
+            f"therefore carry no session designation. They are included in this "
+            f"cumulative record and are listed below for completeness: "
+            f"{', '.join(e(c['campaign_id']) for c in untagged)}.</p>"
+        )
     if session is not None:
         out.append(
             f"<p><strong>Scope:</strong> this report includes only communications "
@@ -364,7 +413,9 @@ def render(
         "<th>Recipients</th><th>Attachments</th></tr></thead><tbody>"
     )
     for n, c in enumerate(campaigns, start=1):
-        att = "<br>".join(e(Path(a).name) for a in c["attachments"]) or "&mdash;"
+        att = (
+            "<br>".join(e(display_attachment(a)) for a in c["attachments"]) or "&mdash;"
+        )
         out.append(
             f"<tr><td>{n}</td><td>{e(fmt_datetime(c['run_at']))}</td>"
             f"<td>{e(c['subject'])}</td><td>{c['total_sent']}</td>"
@@ -412,7 +463,7 @@ def render(
                 bits.append(f"{e(str(key))}: {e(str(value))}")
             out.append(f'<div class="meta">{" &middot; ".join(bits)}</div>')
             if c["attachments"]:
-                names = ", ".join(e(Path(a).name) for a in c["attachments"])
+                names = ", ".join(e(display_attachment(a)) for a in c["attachments"])
                 out.append(f'<div class="meta">Attachments: {names}</div>')
             if c["notes"]:
                 out.append(f'<div class="meta">{e(c["notes"])}</div>')
@@ -500,8 +551,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--check",
         action="store_true",
-        help="Validate the manifest and report discrepancies without "
-        "writing any file.",
+        help="Validate the manifest and report discrepancies without writing any file.",
     )
     return p.parse_args()
 
@@ -522,9 +572,7 @@ def main() -> None:
                 if r["meta"].get("session") is not None
             }
         )
-        records = [
-            r for r in records if str(r["meta"].get("session")) == args.session
-        ]
+        records = [r for r in records if str(r["meta"].get("session")) == args.session]
         if not records:
             sys.exit(
                 f"Error: no campaigns match --session {args.session} "
