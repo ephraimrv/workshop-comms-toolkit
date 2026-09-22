@@ -14,6 +14,8 @@ Features
 * Supports custom attachment display names independent of the filenames
   stored on disk.
 * Verifies that all attachment files exist before sending.
+* Renders every message body during validation, so ``--dry-run`` catches
+  a template that cannot be filled before any connection is opened.
 * Fills message templates from any roster column, e.g. ``{Name}``,
   ``{Department}``, or ``{Organisation}``.
 * Dry-run mode for validation without sending email.
@@ -97,7 +99,7 @@ Send and record the run in the campaign manifest read by comms_report.py::
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 import argparse
 import csv
@@ -127,12 +129,50 @@ def guess_mime(path: Path) -> Tuple[str, str]:
 
 
 def referenced_placeholders(template: str) -> Set[str]:
-    """Return every {field} name the template actually references."""
-    return {
-        field_name
-        for _, field_name, _, _ in string.Formatter().parse(template)
-        if field_name
-    }
+    """Return every {field} name the template actually references.
+
+    Raises ValueError with a readable explanation when the template is not a
+    valid format string, most often a lone brace from R code in the body.
+    """
+    try:
+        parsed = list(string.Formatter().parse(template))
+    except ValueError as exc:
+        raise ValueError(
+            f"the body is not a valid template ({exc}). A literal brace, "
+            "for example in R code, must be doubled: {{ and }}."
+        ) from exc
+    return {field_name for _, field_name, _, _ in parsed if field_name}
+
+
+PLACEHOLDER_HINT = (
+    "Placeholders must be plain column names. Inside {...}, Python reads "
+    "'.' and '[' as attribute and index access, ':' as a format spec and '!' "
+    "as a conversion, so a column header containing any of them (common in "
+    "Google Forms exports) cannot be used directly: rename the column in the "
+    "roster. An empty {} is not allowed."
+)
+
+
+def render_bodies(
+    template: str, rows: List[Dict[str, str]], email_col: str
+) -> List[str]:
+    """Fill the template for every row, before anything is sent.
+
+    Rendering here, rather than inside the send loop, means --dry-run
+    exercises exactly the step that would otherwise fail mid-run, and the
+    send loop reuses these strings, so what was validated is what is sent.
+    Raises ValueError naming the first row that fails.
+    """
+    bodies: List[str] = []
+    for row in rows:
+        try:
+            bodies.append(template.format_map(row))
+        except (KeyError, IndexError, ValueError, AttributeError) as exc:
+            raise ValueError(
+                f"the body cannot be filled for {row[email_col]} "
+                f"({type(exc).__name__}: {exc}).\n{PLACEHOLDER_HINT}"
+            ) from exc
+    return bodies
 
 
 def parse_attachment_list(raw: str, sep: str) -> List[str]:
@@ -615,7 +655,10 @@ def main() -> None:
 
     # Validate every {placeholder} in the template against real columns
     # BEFORE resolving a single attachment or sending a single email.
-    needed = referenced_placeholders(template)
+    try:
+        needed = referenced_placeholders(template)
+    except ValueError as e:
+        sys.exit(f"Error: {e}")
     unknown = needed - set(headers)
     if unknown:
         sys.exit(
@@ -623,8 +666,13 @@ def main() -> None:
             f"{sorted(unknown)}.\n"
             f"Available columns: {headers}\n"
             "If you meant a literal brace in the body (for example R code "
-            "such as function(x) { x + 1 }), double it: {{ and }}."
+            "such as function(x) { x + 1 }), double it: {{ and }}.\n"
+            f"{PLACEHOLDER_HINT}"
         )
+    try:
+        bodies = render_bodies(template, participants, args.email_col)
+    except ValueError as e:
+        sys.exit(f"Error: {e}")
 
     has_attachment_col = args.attachment_col in headers
 
@@ -701,10 +749,17 @@ def main() -> None:
         for i, r in enumerate(participants)
         if r[args.email_col].lower() not in already_sent
     ]
+    # Rows of THIS roster found in the log. len(already_sent) is the size of
+    # the log, which differs whenever the log holds addresses not in the
+    # roster (a withdrawn participant, a shared log).
+    skipped_prior = len(participants) - len(pending_idx)
     print(
-        f"Roster: {len(participants)} | already sent: {len(already_sent)} "
+        f"Roster: {len(participants)} | already sent: {skipped_prior} "
         f"| to send: {len(pending_idx)}"
     )
+    stray = len(already_sent) - skipped_prior
+    if stray:
+        print(f"Note: the sent log also holds {stray} address(es) not in this roster.")
 
     if args.dry_run:
         for i in pending_idx:
@@ -803,7 +858,7 @@ def main() -> None:
             sent_log=args.sent_log,
             sent_this_run=sent_this_run,
             failures=failures,
-            skipped_prior=len(already_sent),
+            skipped_prior=skipped_prior,
             status=status,
             body_file=args.body_file,
             body_text=None if args.body_file else template,
@@ -833,7 +888,7 @@ def main() -> None:
                 for progress, i in enumerate(pending_idx, start=1):
                     row = participants[i]
                     to = row[args.email_col]
-                    body = template.format_map(row)
+                    body = bodies[i]
 
                     msg = build_message(
                         sender,
@@ -896,7 +951,7 @@ def main() -> None:
     print("\n" + "-" * 40)
     print(f"Sent successfully : {sent_this_run}")
     print(f"Failed            : {failures}")
-    print(f"Skipped (prior)   : {len(already_sent)}")
+    print(f"Skipped (prior)   : {skipped_prior}")
     print(f"Duration          : {elapsed:.1f} seconds")
     print("-" * 40)
 
