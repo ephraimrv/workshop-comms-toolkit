@@ -1,22 +1,39 @@
-# --- Participant data: MUST NOT be published -------------------------------
+# --- Event and participant data: MUST NOT be published ----------------------
+# Rules match whole directories first, because filename patterns miss things.
+participants/
 logs/
 bodies/
-*.sent.log
-sent.log
-roster*.csv
-roster*.tsv
+certs/
+templates/
+private/
+campaigns.jsonl
+*.log
+[Rr]oster*.[ct]sv
 participants*.csv
-*_responses.csv
+*[Rr]esponses*.csv
+*[Rr]esponses*.xlsx
+*_personal.md
 
-# --- Credentials -----------------------------------------------------------
-.env
+# --- Credentials -------------------------------------------------------------
 *.env
+.env.*
+!.env.example
 
-# --- Generated output ------------------------------------------------------
+# --- Generated output --------------------------------------------------------
 communications_log*.html
 communications_log*.pdf
 
-# --- Python ----------------------------------------------------------------
+# --- R -----------------------------------------------------------------------
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# --- Large raw data ------------------------------------------------------------
+*.fastq.gz
+data_set/BSP_MMSU_2026_Workshop_2/demo
+
+# --- Python --------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 .venv/
@@ -25,23 +42,8 @@ venv/
 .ruff_cache/
 .pytest_cache/
 
-# --- Editors and OS --------------------------------------------------------
+# --- Editors and OS --------------------------------------------------------------
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
-
-# --- raw reads -------------------------------------------------------------
-*.fastq.gz
-
-# --- communication logs ----------------------------------------------------
-attachments/communications_log_*.html
-
-# --- demo folder -----------------------------------------------------------
-data_set/BSP_MMSU_2026_Workshop_2/demo
-
-# --- certificate generation ------------------------------------------------
-templates/
-certs/
-
-
