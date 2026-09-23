@@ -8,7 +8,7 @@ Examples
 --------
 Check a field for common domain typos::
 
-    >>> likely_domain_typo("participant@example.com")
+    >>> likely_domain_typo("participant@gmail.con")
     'gmail.com'
     >>> likely_domain_typo("felix@example.com") is None
     True
