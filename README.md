@@ -1,16 +1,18 @@
-# BSP–MMSU Workshop Operations Toolkit
+# Workshop Operations Toolkit
+
+![checks](https://github.com/ephraimrv/workshop-comms-toolkit/actions/workflows/ci.yml/badge.svg)
 
 A set of command-line tools for running a multi-session training programme end to end: validating a messy attendance export, deciding who earned which certificate, generating the certificate PDFs, sending them (and every other participant communication) as personalised bulk email, and turning the record of those sends into submittable programme documentation.
 
-Written in Python 3.12 with the standard library plus `pypdf` and `reportlab` for the certificate stage. Built to run a real workshop, not to demonstrate a framework.
+Written in Python 3.12 with the standard library plus `pypdf` and `reportlab` for the certificate stage. Built to run real workshops, not to demonstrate a framework.
 
 ------
 
 ## Why this exists
 
-These tools were built for the BSP–MMSU Workshop Series — a three-session R training programme for biologists at Mariano Marcos State University, run under the Philippine Department of Science and Technology's Balik Scientist Program.
+I built these tools for the BSP–MMSU Workshop Series, a three-session R training programme for biologists at Mariano Marcos State University, run under the Department of Science and Technology's Balik Scientist Program. They are now in use for the programme's workshops at the University of Science and Technology of Southern Philippines.
 
-The author served as research assistant for the series: handling the backend for the programme lead, troubleshooting installations during sessions, and compiling the participant-facing guides distributed alongside the workshop (several of which live in `attachments/`). The Python tools documented here are what made that workload tractable.
+I served as research assistant for the series: handling the backend for the programme lead, troubleshooting installations during sessions, and compiling the participant-facing guides distributed alongside the workshop (several of which live in `attachments/`). The Python tools documented here are what made that workload tractable.
 
 The practical problem had two halves that turned out to share a spine.
 
@@ -116,14 +118,14 @@ python generate_cert.py cert_roster.csv \
 
 Sends one personalised email per row of a CSV or TSV roster.
 
-- `{Column}` placeholders drawn from any roster column
+- `{Column}` placeholders drawn from any roster column. A placeholder must be a plain column name: inside `{...}` Python reads `.` and `[` as attribute and index access, `:` as a format spec and `!` as a conversion, so a header such as a Google Forms question (`Full name (e.g. Juan Dela Cruz)`) must be renamed before it can be used
 - Per-recipient attachments (`--attachment-col`), shared attachments (`--attach`), or both
 - Attachment display names independent of the filenames on disk (`--attachment-name-col`), so files are stored under ASCII serials while recipients see readable names
 - Every attachment verified to exist *before* the first message is sent
 - Resumable: addresses already in the sent log are skipped
 - `--manifest` appends a one-line JSON record of each run to the campaign manifest, making the send and its documentation one step
 - `--copy-to` sends a single archival copy of the campaign after the run, distinct from `--cc`/`--bcc` which copy an address on *every* message
-- `--dry-run` validates roster, placeholders, and attachments without sending
+- `--dry-run` validates roster, placeholders, and attachments, and renders every message body, without sending
 - Interactive confirmation before any real send
 
 ```bash
@@ -146,6 +148,8 @@ python mail_merge.py -R certs/roster_out.csv \
 
 Reads the campaign manifest and renders a single printable HTML document: a summary table of every campaign, the full text of each message, and a verification section reconciling the manifest against the files it references.
 
+Body, log and attachment paths in the manifest are resolved relative to the manifest's own folder (override with `--base-dir`).
+
 ```bash
 python comms_report.py -c campaigns.jsonl --check          # validate only
 python comms_report.py -c campaigns.jsonl -o Report.html   # render everything
@@ -154,13 +158,15 @@ python comms_report.py -c campaigns.jsonl -o S1.html --session 1
 
 `--check` exits non-zero when any record fails verification, so it can gate a build step. Verification reconciles each recipient count against its sent log, confirms archived bodies and attachments exist, and warns when the date in a `campaign_id` disagrees with the date it was sent.
 
+> The header defaults (`--programme`, `--lead`) still carry the BSP–MMSU values, and the report prints a fixed "BSP Fellow" label. Pass `--programme` explicitly for any other event.
+
 > The rendered reports are operational records, not repository artefacts. Like `logs/` and `bodies/`, they stay on the operator's machine and are excluded from version control — they contain message bodies and internal correspondence that have no place in a public repo.
 
 ------
 
 ## Manifest schema
 
-`campaigns.jsonl` holds one JSON object per line. Each line records a single *run*, not a campaign. `comms_report.py` reconciles the fields below, and `mail_merge.py --manifest` emits them automatically.
+`campaigns.jsonl` holds one JSON object per line. It lives in each event's data folder (see *Where the data lives*), not in this repository. Each line records a single *run*, not a campaign. `comms_report.py` reconciles the fields below, and `mail_merge.py --manifest` emits them automatically.
 
 This section is the single authoritative definition of these fields.
 
@@ -191,7 +197,7 @@ The decisions worth explaining, and why they went the way they did.
 
 ### Validation is shared, not duplicated
 
-`rollup_attendance.py` and `generate_cert.py` both read rosters and both must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by both. One source of truth means the two tools cannot silently disagree about what a valid email is.
+`rollup_attendance.py` and `generate_cert.py` both read rosters and both must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by both. One source of truth means the two tools cannot silently disagree about what a valid email is. `mail_merge.py` does not yet import it; see *Limitations*.
 
 ### Session and tier are derived, not trusted
 
@@ -223,11 +229,41 @@ Because sends are resumable, one campaign can span several runs. Lines are event
 
 ### Everything fails before anything sends
 
-Roster parsing reports *all* malformed rows at once. Placeholders are validated against real headers. Every attachment path is resolved and checked. Duplicates are rejected. Only then does the tool ask for confirmation. The alternative — discovering a missing certificate at recipient 43 — leaves a campaign half-sent and a person to apologise to.
+Roster parsing reports *all* malformed rows at once. Placeholders are validated against real headers, and every message body is rendered, so a template that cannot be filled fails during `--dry-run` rather than after login. The send loop reuses those rendered bodies, so what was validated is exactly what is sent. Every attachment path is resolved and checked. Duplicates are rejected. Only then does the tool ask for confirmation. The alternative — discovering a missing certificate at recipient 43 — leaves a campaign half-sent and a person to apologise to.
 
 ### Backward-compatible manifest schema
 
 Early records were hand-written with `sent_at` and `recipient_count` before the run-oriented schema settled. `normalise()` maps legacy field names to canonical ones at the single point where records enter the programme, so old and new lines coexist and the canonical spelling is the only one ever freshly written.
+
+### Event data lives outside the repository
+
+Rosters, sent logs, archived bodies and the manifest contain participants' personal data, so they never live inside the working tree. A `.gitignore` rule protects a file only while the rule stays in place; `git add -f`, `git clean -x` and a fresh clone all act on ignored files regardless. Keeping the data in a separate folder means no git operation can publish or delete it.
+
+------
+
+## Where the data lives
+
+Each event has its own folder beside the repository, holding everything that event produces:
+
+```
+workshops/
+├── bsp-mmsu-2026/
+│   ├── campaigns.jsonl     # the event's manifest
+│   ├── attachments/        # the files as they were actually sent
+│   ├── bodies/             # archived message templates
+│   ├── logs/               # sent logs (contain addresses)
+│   └── rosters/
+└── ustp-claveria-2026/
+    └── …
+```
+
+Run the tools from inside the event folder, calling them by path, so that every path recorded in the manifest is relative to that folder:
+
+```bash
+cd workshops/ustp-claveria-2026
+python ../../workshop-comms-toolkit/mail_merge.py -R rosters/roster.csv ... --manifest campaigns.jsonl
+python ../../workshop-comms-toolkit/comms_report.py -c campaigns.jsonl --check
+```
 
 ------
 
@@ -239,15 +275,15 @@ Early records were hand-written with `sent_at` and `recipient_count` before the 
 ├── rollup_attendance.py   # derive session + tier from the raw export
 ├── generate_cert.py       # stamp certificate PDFs; enrich the roster
 ├── roster_checks.py       # shared name/email validation
-├── campaigns.jsonl        # campaign manifest, one JSON object per line
+├── tests/                 # pytest suite (mail_merge.py)
 ├── attachments/           # participant-facing guides distributed in the series
-├── data_set/              # public teaching datasets used in the workshop
 ├── fonts/                 # certificate font (static Montserrat-Regular.ttf)
-├── bodies/                # archived message templates — gitignored, local only
-└── logs/                  # sent logs — gitignored, contain addresses, local only
+├── pyproject.toml         # ruff and pytest settings
+├── requirements-dev.txt   # pinned development tools
+└── .github/workflows/     # continuous integration
 ```
 
-`bodies/` and `logs/` are excluded from version control: they contain message text and participant email addresses and are retained only on the operator's machine. The certificate templates and the rendered communications reports are likewise kept out of the repository.
+The certificate templates and the rendered communications reports are kept out of the repository.
 
 ------
 
@@ -255,17 +291,30 @@ Early records were hand-written with `sent_at` and `recipient_count` before the 
 
 Stated plainly, because they are the next things to fix.
 
-- **No automated tests.** `mail_merge.py`'s `main()` creates its SMTP connection inline, so there is no seam to inject a fake transport; testing currently needs a live local server. Extracting the send loop into a function taking an already-connected SMTP object is the obvious next refactor. The certificate tools are likewise exercised by hand against real templates rather than by a suite.
+- **Tests cover `mail_merge.py` only.** The suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. `comms_report.py` and the certificate tools are still exercised by hand.
+- **`mail_merge.py` keeps its own email check.** It rejects only addresses without an `@`, rather than importing `roster_checks.py`, so it does not yet flag domain typos such as `gmail.con` at send time.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
-- **Gmail-oriented defaults.** Host and port are configurable, but the credential guidance assumes an app password.
+- **Gmail-oriented defaults.** Host and port are configurable, but the credential guidance assumes an app password, and there is no STARTTLS mode or custom certificate option, so a local relay with a self-signed certificate (such as Proton Mail Bridge) is not supported.
+- **Report header defaults are event-specific.** See `comms_report.py` above.
 - **Certificate placement is template-specific.** The stamping constants are measured against one set of templates sharing a fixed geometry; a differently laid-out template needs those constants re-measured.
 
 ------
 
 ## Requirements
 
-Python 3.12 or later. The communications tools use the standard library only; the certificate tools additionally require `pypdf` and `reportlab`. `aiosmtpd` is needed for local mail testing, not for use.
+Python 3.12 or later; continuous integration checks 3.12 and 3.13. The communications tools use the standard library only; the certificate tools additionally require `pypdf` and `reportlab`.
+
+For development, install the pinned tools and run the same checks CI runs:
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+isort --check-only .
+mypy mail_merge.py comms_report.py
+python -m pytest
+python -m doctest roster_checks.py
+```
 
 Credentials are read from the environment, never from a file:
 
@@ -278,6 +327,6 @@ export WORKSHOP_PASSWORD="your_app_password"
 
 ## Licence
 
-MIT. See [LICENSE](https://claude.ai/chat/LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 Written by Jan Ephraim R. Vallente.
