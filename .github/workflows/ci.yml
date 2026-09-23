@@ -1,0 +1,29 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pinned development tools
+        run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Import order (isort)
+        run: isort --check-only .
+      - name: Types (mypy)
+        run: mypy mail_merge.py comms_report.py
+      - name: Tests (pytest)
+        run: python -m pytest
+      - name: Doctests
+        run: python -m doctest roster_checks.py

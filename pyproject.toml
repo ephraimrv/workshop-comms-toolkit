@@ -1,0 +1,12 @@
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+# E4/E7/E9: syntax-level and statement-level errors. F: pyflakes (undefined
+# names, unused imports). B: bugbear (likely bugs, e.g. zip() without strict=).
+# Style-modernisation rules (UP) are deliberately off: they are opinions
+# about spelling, not defects, and would fail CI on working code.
+select = ["E4", "E7", "E9", "F", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,6 @@
+# Development tools, pinned so local checks and CI give identical results.
+# Upgrade deliberately: change a version here, run the checks, commit.
+pytest==9.1.1
+ruff==0.16.8
+mypy==2.3.1
+isort==9.0.1

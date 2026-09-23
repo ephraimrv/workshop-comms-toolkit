@@ -271,7 +271,7 @@ def build_message(
     msg["Subject"] = subject
     msg.set_content(body)
     names = display_names or [p.name for p in attachments]
-    for path, shown in zip(attachments, names):
+    for path, shown in zip(attachments, names, strict=True):
         maintype, subtype = guess_mime(path)
         msg.add_attachment(
             path.read_bytes(),
