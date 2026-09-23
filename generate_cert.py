@@ -123,7 +123,8 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from roster_checks import clean_name, likely_domain_typo, structurally_valid_email
+from roster_checks import (clean_name, likely_domain_typo,
+                           structurally_valid_email)
 
 PAGE_W, PAGE_H = 841.92, 595.2
 NAME_SIZE = 36.0

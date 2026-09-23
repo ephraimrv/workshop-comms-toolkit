@@ -103,12 +103,14 @@ __version__ = "0.1.0"
 
 import csv
 import sys
-from argparse import ArgumentParser, ArgumentTypeError, RawDescriptionHelpFormatter
+from argparse import (ArgumentParser, ArgumentTypeError,
+                      RawDescriptionHelpFormatter)
 from collections import defaultdict
 from datetime import date, datetime
 from pathlib import Path
 
-from roster_checks import clean_name, likely_domain_typo, structurally_valid_email
+from roster_checks import (clean_name, likely_domain_typo,
+                           structurally_valid_email)
 
 TIER_PARTICIPATION = "participation"
 TIER_ATTENDANCE = "attendance"
@@ -135,7 +137,7 @@ def parse_date(raw: str) -> date:
     try:
         return datetime.strptime(raw.strip(), "%Y-%m-%d").date()
     except ValueError:
-        raise ArgumentTypeError(f"{raw!r} is not an ISO date (YYYY-MM-DD)")
+        raise ArgumentTypeError(f"{raw!r} is not an ISO date (YYYY-MM-DD)") from None
 
 
 def parse_args(argv: list[str] | None = None):
