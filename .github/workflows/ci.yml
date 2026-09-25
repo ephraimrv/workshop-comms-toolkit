@@ -22,8 +22,8 @@ jobs:
       - name: Import order (isort)
         run: isort --check-only .
       - name: Types (mypy)
-        run: mypy mail_merge.py comms_report.py
+        run: mypy mail_merge.py comms_report.py new_registrants.py
       - name: Tests (pytest)
         run: python -m pytest
       - name: Doctests
-        run: python -m doctest roster_checks.py
+        run: python -m doctest roster_checks.py new_registrants.py

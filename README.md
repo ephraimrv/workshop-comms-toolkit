@@ -57,11 +57,25 @@ Both halves meet at a single CSV roster. That seam is what lets each tool do one
                             └───────────────────────┘
 
               roster_checks.py  ──  shared name/email validation,
-                                    imported by rollup_attendance.py
-                                    and generate_cert.py
+                                    imported by rollup_attendance.py,
+                                    generate_cert.py and new_registrants.py
 ```
 
 `mail_merge.py` and `comms_report.py` also stand alone: every non-certificate communication in the series (setup reminders, house rules, troubleshooting guides, evaluation links) went out through the same two tools and is recorded in the same manifest.
+
+Before a workshop, registration feeds the same sender through a second, shorter path:
+
+```
+              registration form export  +  sent logs of earlier runs
+                                        │
+                                        ▼
+                            ┌───────────────────────┐
+                            │  new_registrants.py    │  who has not yet
+                            └───────────────────────┘  been sent?
+                                        │
+                                        ▼
+                             roster.csv  ──►  mail_merge.py
+```
 
 ------
 
@@ -113,6 +127,25 @@ python generate_cert.py cert_roster.csv \
 ```
 
 > The font must be a **static** `Montserrat-Regular.ttf` (usWeightClass 400, no `fvar` table). The variable-font build some sources serve defaults to a Thin weight, and a metrics-only check will not catch it — only a visual check of the rendered PDF will. The university certificate templates are not included in this repository.
+
+### `new_registrants.py`
+
+Works out who on a still-open registration form has not yet received a campaign, and appends them to that campaign's roster, so the same body can be resent batch by batch as registrations arrive.
+
+It keeps no record of its own of who was sent: it subtracts every address in the sent logs passed to it, plus an optional exclusions file, from the form export. The sent log is already the one reliable record of delivery (see *The sent log is written after the send*), so a second list could only disagree with it. A log in an unexpected format would match nobody and quietly turn everyone in it into a "new" registrant, so any line that is not a single bare address stops the run, and `--write` is refused while any log shares no address with the form. When one address registered twice, the later row's name is kept.
+
+Names are copied verbatim, as in `generate_cert.py`. Names in capitals, surname-first with a comma, with a lower-case word or with repeated spaces are flagged for a human to correct, together with addresses outside the expected domain or one edit from a known one. The shared `contact_*` columns are copied from an earlier roster; any other per-person column in that roster stops the run rather than being filled with a guess. Without `--write` it only reports.
+
+```bash
+python ../../workshop-comms-toolkit/new_registrants.py \
+    --form "Event Registration Responses - Form Responses 1.csv" \
+    --sent-log logs/install-phase1.sent.log logs/install-phase1-v2.sent.log \
+    --exclude exclusions.txt \
+    --template rosters/install-phase1-v2.csv \
+    --roster rosters/install-phase1-v3.csv
+```
+
+The file itself holds no participant data; the form export, logs, exclusions and rosters are read from the event folder at run time.
 
 ### `mail_merge.py`
 
@@ -197,7 +230,7 @@ The decisions worth explaining, and why they went the way they did.
 
 ### Validation is shared, not duplicated
 
-`rollup_attendance.py` and `generate_cert.py` both read rosters and both must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by both. One source of truth means the two tools cannot silently disagree about what a valid email is. `mail_merge.py` does not yet import it; see *Limitations*.
+`rollup_attendance.py`, `generate_cert.py` and `new_registrants.py` all read rosters or form exports and must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by all three. One source of truth means the two tools cannot silently disagree about what a valid email is. `mail_merge.py` does not yet import it; see *Limitations*.
 
 ### Session and tier are derived, not trusted
 
@@ -205,7 +238,7 @@ The real data source is a single accumulating Google Forms export with no sessio
 
 ### Names are stamped verbatim
 
-The registration form asks each person how they want their name to appear. `generate_cert.py` changes nothing but surrounding whitespace and Unicode normalisation form. It does not fix case or spelling, because "correcting" a name is how you put the wrong name on someone's certificate.
+The registration form asks each person how they want their name to appear. `generate_cert.py` changes nothing but surrounding whitespace and Unicode normalisation form. It does not fix case or spelling, because "correcting" a name is how you put the wrong name on someone's certificate. `new_registrants.py` follows the same rule: it flags a name that looks wrong and leaves the correction to a person.
 
 ### Recipient addresses never reach the report
 
@@ -274,8 +307,9 @@ python ../../workshop-comms-toolkit/comms_report.py -c campaigns.jsonl --check
 ├── comms_report.py        # render the manifest into a submittable log
 ├── rollup_attendance.py   # derive session + tier from the raw export
 ├── generate_cert.py       # stamp certificate PDFs; enrich the roster
+├── new_registrants.py     # find registrants not yet sent a campaign
 ├── roster_checks.py       # shared name/email validation
-├── tests/                 # pytest suite (mail_merge.py)
+├── tests/                 # pytest suite (mail_merge.py, new_registrants.py)
 ├── attachments/           # participant-facing guides distributed in the series
 ├── fonts/                 # certificate font (static Montserrat-Regular.ttf)
 ├── pyproject.toml         # ruff and pytest settings
@@ -291,7 +325,7 @@ The certificate templates and the rendered communications reports are kept out o
 
 Stated plainly, because they are the next things to fix.
 
-- **Tests cover `mail_merge.py` only.** The suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. `comms_report.py` and the certificate tools are still exercised by hand.
+- **Tests cover `mail_merge.py` and `new_registrants.py` only.** The `mail_merge.py` suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. The `new_registrants.py` suite uses invented participants in a temporary folder. `comms_report.py` and the certificate tools are still exercised by hand.
 - **`mail_merge.py` keeps its own email check.** It rejects only addresses without an `@`, rather than importing `roster_checks.py`, so it does not yet flag domain typos such as `gmail.con` at send time.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
@@ -311,9 +345,9 @@ For development, install the pinned tools and run the same checks CI runs:
 pip install -r requirements-dev.txt
 ruff check .
 isort --check-only .
-mypy mail_merge.py comms_report.py
+mypy mail_merge.py comms_report.py new_registrants.py
 python -m pytest
-python -m doctest roster_checks.py
+python -m doctest roster_checks.py new_registrants.py
 ```
 
 Credentials are read from the environment, never from a file:

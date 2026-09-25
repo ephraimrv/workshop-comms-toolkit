@@ -13,6 +13,7 @@ participants*.csv
 *[Rr]esponses*.csv
 *[Rr]esponses*.xlsx
 *_personal.md
+exclusions*.txt
 
 # --- Credentials -------------------------------------------------------------
 *.env
