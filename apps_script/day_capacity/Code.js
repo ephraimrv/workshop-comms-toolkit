@@ -15,7 +15,7 @@
  * checkSetup(), then run installTrigger() once.
  *
  * @author Jan Ephraim R. Vallente
- * @version 0.1.0
+ * @version 0.1.1
  */
 
 const CONFIG = {
@@ -185,7 +185,21 @@ function update_() {
   if (open.length === 0) {
     // A question cannot have zero choices, so close the form instead
     // and leave the last choice list in place.
-    form.setCustomClosedFormMessage(CONFIG.closedMessage);
+    if (!form.isAcceptingResponses()) {
+      // Already closed (by an earlier run or by hand). Google rejects
+      // any change to the closed-form message while the form is
+      // closed ("Invalid data updating form"), so change nothing.
+      console.log('All days full: form already closed.');
+      return;
+    }
+    // The message must be set while the form is still open, for the
+    // same reason. A failure here must not stop the form closing:
+    // closing is the step that matters.
+    try {
+      form.setCustomClosedFormMessage(CONFIG.closedMessage);
+    } catch (err) {
+      console.warn(`Closed-form message not set: ${err.message}`);
+    }
     form.setAcceptingResponses(false);
     console.log('All days full: form closed.');
     return;

@@ -10,6 +10,7 @@ After every submission an installable trigger runs `handleSubmit`, which recount
 
 - **Recounted, not incremented.** Nothing is stored between runs, so deleting a response (a duplicate, a withdrawn registrant) and running `refresh()` frees that seat.
 - **The configured list is the master copy.** Once a day is removed from the form, only `CONFIG.days` still knows it existed, so every label there must match the form character for character. `checkSetup()` refuses to run if the form has a choice the list does not.
+- **Sets the closed-form message before closing, and never after.** Google rejects any change to the message while the form is closed ("Invalid data updating form"), so the message is set while the form is still open, and a run that finds the form already closed with every day full changes nothing. A failure to set the message is logged as a warning and does not stop the form closing.
 - **Never reopens the form by itself.** A closed form may have been closed on purpose (the registration deadline). If a seat is freed after closing, the log says so and a person decides.
 - **A lock serialises runs**, so two submissions arriving together cannot both rewrite the choices from stale counts.
 
