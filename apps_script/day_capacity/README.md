@@ -19,6 +19,8 @@ After every submission an installable trigger runs `handleSubmit`, which recount
 - **It counts submissions, not confirmed seats.** A duplicate, an ineligible registrant or someone without a laptop still takes a place until their response is deleted and `refresh()` is run. Seats are confirmed by email; this script only stops a full day collecting more registrations.
 - **It acts after the fact.** Someone who opened the form before a day filled can still submit that day, so a day can end at 41 or 42.
 - **It edits the form while it is live.** Removing a choice does not relabel earlier answers, so the data stays consistent, but the form should say so: *"Days that are full are removed from the list."*
+- **The form's Individual view cannot show an answer whose day has been removed.** The response is stored and counted correctly, but once its day has been removed from the question, the Individual view shows the answer greyed out, sometimes under another day's label (observed in testing, 29 September 2026). To find which response to delete, identify it in the linked response sheet (timestamp and email address), then delete it in the form's Individual view by the same timestamp and email address.
+- **Delete responses in the form, not in the sheet.** The script counts the form's responses. Deleting a row in the linked sheet leaves the response in the form, so its seat is never freed.
 - **Do not add "Go to section based on answer" to the day question.** Rewriting the choices discards any branching set on them.
 
 ## Setting it up (in the browser, no tools needed)
