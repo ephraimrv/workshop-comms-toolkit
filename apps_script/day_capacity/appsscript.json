@@ -1,0 +1,9 @@
+{
+  "timeZone": "Asia/Manila",
+  "runtimeVersion": "V8",
+  "exceptionLogging": "STACKDRIVER",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/forms.currentonly",
+    "https://www.googleapis.com/auth/script.scriptapp"
+  ]
+}

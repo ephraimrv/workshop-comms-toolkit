@@ -147,6 +147,10 @@ python ../../workshop-comms-toolkit/new_registrants.py \
 
 The file itself holds no participant data; the form export, logs, exclusions and rosters are read from the event folder at run time.
 
+### `apps_script/day_capacity/`
+
+A Google Apps Script bound to a registration form: after every submission it recounts the answers to the day question and removes any day that has reached its capacity, closing the form when every day is full. It runs inside the form's own Google account, so responses never leave Google. Written in JavaScript because Apps Script is; setup, limits and tests are in its own [README](apps_script/day_capacity/README.md).
+
 ### `mail_merge.py`
 
 Sends one personalised email per row of a CSV or TSV roster.
@@ -309,6 +313,8 @@ python ../../workshop-comms-toolkit/comms_report.py -c campaigns.jsonl --check
 ├── generate_cert.py       # stamp certificate PDFs; enrich the roster
 ├── new_registrants.py     # find registrants not yet sent a campaign
 ├── roster_checks.py       # shared name/email validation
+├── apps_script/
+│   └── day_capacity/      # Google Apps Script: per-day seat limit on a form
 ├── tests/                 # pytest suite (mail_merge.py, new_registrants.py)
 ├── attachments/           # participant-facing guides distributed in the series
 ├── fonts/                 # certificate font (static Montserrat-Regular.ttf)
