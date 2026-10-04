@@ -531,10 +531,11 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--programme",
-        default="BSP–MMSU Workshop Series · Balik Scientist Program · "
-        "Mariano Marcos State University",
+        default=None,
         metavar="TEXT",
-        help="Programme line for the header.",
+        help="Programme line for the header, naming the event and host "
+        "institution. Required with --output; there is no default, so "
+        "one event's report cannot carry another event's header.",
     )
     p.add_argument(
         "--session",
@@ -605,6 +606,12 @@ def main() -> None:
 
     if not args.output:
         sys.exit("Error: --output is required unless --check is given.")
+    if not args.programme:
+        sys.exit(
+            "Error: --programme is required when writing a report, for "
+            'example --programme "Beyond the Data · Balik Scientist Program '
+            '· USTP Claveria".'
+        )
 
     document = render(
         campaigns,

@@ -189,13 +189,14 @@ Body, log and attachment paths in the manifest are resolved relative to the mani
 
 ```bash
 python comms_report.py -c campaigns.jsonl --check          # validate only
-python comms_report.py -c campaigns.jsonl -o Report.html   # render everything
-python comms_report.py -c campaigns.jsonl -o S1.html --session 1
+python comms_report.py -c campaigns.jsonl -o Report.html \
+    --programme "BSP–MMSU Workshop Series · Balik Scientist Program · Mariano Marcos State University"
+python comms_report.py -c campaigns.jsonl -o S1.html --session 1 --programme "..."
 ```
 
 `--check` exits non-zero when any record fails verification, so it can gate a build step. Verification reconciles each recipient count against its sent log, confirms archived bodies and attachments exist, and warns when the date in a `campaign_id` disagrees with the date it was sent.
 
-> The header defaults (`--programme`, `--lead`) still carry the BSP–MMSU values, and the report prints a fixed "BSP Fellow" label. Pass `--programme` explicitly for any other event.
+> `--programme` has no default and is required whenever a report is written, so a report cannot silently carry another event's header. `--check` does not need it. `--lead` still defaults to Dr. Imelda L. Forteza and the header prints a fixed "BSP Fellow" label, which is accurate for every event so far.
 
 > The rendered reports are operational records, not repository artefacts. Like `logs/` and `bodies/`, they stay on the operator's machine and are excluded from version control — they contain message bodies and internal correspondence that have no place in a public repo.
 
@@ -339,7 +340,7 @@ Stated plainly, because they are the next things to fix.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
 - **Gmail-oriented defaults.** Host and port are configurable, but the credential guidance assumes an app password, and there is no STARTTLS mode or custom certificate option, so a local relay with a self-signed certificate (such as Proton Mail Bridge) is not supported.
-- **Report header defaults are event-specific.** See `comms_report.py` above.
+- **The report header assumes a Balik Scientist lead.** `--lead` defaults to Dr. Imelda L. Forteza and the "BSP Fellow" label is fixed. Both are accurate for every event so far; an event led by someone else needs `--lead`, and the label would need to become an option.
 - **Certificate placement is template-specific.** The stamping constants are measured against one set of templates sharing a fixed geometry; a differently laid-out template needs those constants re-measured.
 
 ------
