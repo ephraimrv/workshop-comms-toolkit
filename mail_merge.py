@@ -364,6 +364,9 @@ def build_manifest_record(
     per_recipient_count: int,
     session: Optional[int],
     notes: str,
+    cc: Optional[List[str]] = None,
+    bcc: Optional[List[str]] = None,
+    copy_to: Optional[List[str]] = None,
 ) -> dict:
     """Return one JSONL manifest record describing a single send run.
 
@@ -399,6 +402,9 @@ def build_manifest_record(
             "dir": str(per_recipient_dir),
             "count": per_recipient_count,
         }
+    for key, addresses in (("cc", cc), ("bcc", bcc), ("copy_to", copy_to)):
+        if addresses:
+            record[key] = list(addresses)
     if notes:
         record["notes"] = notes
     return record
@@ -894,6 +900,9 @@ def main() -> None:
             per_recipient_count=per_recipient_count,
             session=args.session,
             notes=args.notes,
+            cc=args.cc,
+            bcc=args.bcc,
+            copy_to=args.copy_to,
         )
         append_jsonl(args.manifest, record)
         print(

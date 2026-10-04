@@ -218,6 +218,7 @@ This section is the single authoritative definition of these fields.
 | `sent_log`                                                   | Path to the run's sent log; its non-blank line count must equal the campaign's summed `sent_this_run`. Empty or absent for a message sent by hand — the report marks the count unverifiable rather than wrong. |
 | `attachments` / `shared_attachments` / `per_recipient_attachments` | Files sent to a single record, to everyone, or one per recipient. |
 | `failures` / `skipped_prior` / `status`                      | Run outcome: sends refused, addresses already sent in an earlier run, and whether the run completed or was interrupted. |
+| `cc` / `bcc` / `copy_to`                                     | Addresses copied on every message, blind-copied on every message, or sent the single summary copy. Present only when used. These are colleagues' addresses, never participants'; the report does not render them. |
 | `notes`                                                      | Free-text record of anything notable about the run — including whether it was sent outside the tool. |
 
 ### `session` — the one definition

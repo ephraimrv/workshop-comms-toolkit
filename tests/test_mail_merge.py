@@ -171,3 +171,21 @@ def test_copy_to_reaches_every_address_once(run, tmp_path, flags):
     assert len(copies) == 1
     assert copies[0]["To"] == "lead@example.org, host@example.org"
     assert len(FakeSMTP.sent) == 3  # two recipients plus one copy
+
+
+# --- Fix 5: the manifest records who received copies ---------------------
+
+
+def test_manifest_records_copy_recipients(run, tmp_path):
+    write(tmp_path / "r.csv", ROSTER)
+    write(tmp_path / "body.txt", "Hi {Name}\n")
+    run(
+        "-R", "r.csv", "-b", "body.txt", "--sent-log", "s.log", "-y",
+        "--manifest", "m.jsonl", "--campaign-id", "copy-2026-10-04",
+        "--copy-to", "lead@example.org,host@example.org",
+        "--cc", "archive@example.org",
+    )
+    record = json.loads((tmp_path / "m.jsonl").read_text(encoding="utf-8"))
+    assert record["copy_to"] == ["lead@example.org", "host@example.org"]
+    assert record["cc"] == ["archive@example.org"]
+    assert "bcc" not in record  # absent when unused, like other optional fields
