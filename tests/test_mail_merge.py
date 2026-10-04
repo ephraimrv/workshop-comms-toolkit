@@ -189,3 +189,45 @@ def test_manifest_records_copy_recipients(run, tmp_path):
     assert record["copy_to"] == ["lead@example.org", "host@example.org"]
     assert record["cc"] == ["archive@example.org"]
     assert "bcc" not in record  # absent when unused, like other optional fields
+
+
+# --- Fix 6: addresses get the shared roster_checks rules ------------------
+
+
+@pytest.mark.parametrize(
+    "address, reason",
+    [
+        ("ana@gmail.con", "typo of ...@gmail.com"),
+        ("@example.com", "malformed"),
+        ("ana@localhost", "malformed"),
+        ("ana@example..com", "malformed"),
+    ],
+    ids=["typo-domain", "no-local-part", "dotless-domain", "empty-label"],
+)
+def test_roster_address_rejected_before_sending(run, tmp_path, address, reason):
+    write(tmp_path / "r.csv", f"email,Name\nok@example.com,Ok\n{address},Bad\n")
+    write(tmp_path / "body.txt", "Hi {Name}\n")
+    with pytest.raises(SystemExit) as exc:
+        run("-R", "r.csv", "-b", "body.txt", "--sent-log", "s.log", "-y")
+    assert reason in str(exc.value)
+    assert FakeSMTP.sent == []
+    assert not (tmp_path / "s.log").exists()
+
+
+def test_real_provider_near_gmail_is_accepted(run, tmp_path):
+    write(tmp_path / "r.csv", "email,Name\nana@ymail.com,Ana\nben@mail.com,Ben\n")
+    write(tmp_path / "body.txt", "Hi {Name}\n")
+    run("-R", "r.csv", "-b", "body.txt", "--sent-log", "s.log", "-y")
+    assert len(FakeSMTP.sent) == 2
+
+
+def test_bad_copy_address_rejected_before_sending(run, tmp_path):
+    write(tmp_path / "r.csv", ROSTER)
+    write(tmp_path / "body.txt", "Hi {Name}\n")
+    with pytest.raises(SystemExit) as exc:
+        run(
+            "-R", "r.csv", "-b", "body.txt", "--sent-log", "s.log", "-y",
+            "--copy-to", "lead@example.org,host@gmial.com",
+        )
+    assert "--copy-to 'host@gmial.com'" in str(exc.value)
+    assert FakeSMTP.sent == []

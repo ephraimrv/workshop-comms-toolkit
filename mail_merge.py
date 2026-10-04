@@ -118,6 +118,8 @@ from email.utils import parseaddr
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+from roster_checks import likely_domain_typo, structurally_valid_email
+
 
 def split_addresses(values: List[str]) -> List[str]:
     """Return the addresses in values, splitting each on commas.
@@ -139,6 +141,28 @@ def split_addresses(values: List[str]) -> List[str]:
                 seen.add(addr.lower())
                 out.append(addr)
     return out
+
+
+def address_problem(addr: str) -> Optional[str]:
+    """Return why addr cannot be sent to, or None if it can.
+
+    Applies the shared rules in roster_checks.py, the same ones the
+    certificate and attendance tools use, so every tool in the kit rejects
+    the same addresses.
+
+    >>> address_problem("ana@gmail.com") is None
+    True
+    >>> address_problem("x@y")
+    'malformed address'
+    >>> address_problem("ana@gmail.con")
+    'looks like a typo of ...@gmail.com; fix it in the source'
+    """
+    if not structurally_valid_email(addr):
+        return "malformed address"
+    suggestion = likely_domain_typo(addr)
+    if suggestion:
+        return f"looks like a typo of ...@{suggestion}; fix it in the source"
+    return None
 
 
 def guess_mime(path: Path) -> Tuple[str, str]:
@@ -250,8 +274,9 @@ def load_roster(roster: Path, email_col: str) -> Tuple[List[Dict[str, str]], Lis
 
             row = {(k or "").strip(): (v or "").strip() for k, v in raw.items()}
             addr = parseaddr(row[email_col])[1]
-            if "@" not in addr:
-                problems.append(f"  line {lineno}: invalid email {row[email_col]!r}")
+            problem = address_problem(addr) if addr else "malformed address"
+            if problem:
+                problems.append(f"  line {lineno}: {row[email_col]!r}: {problem}")
                 continue
             row[email_col] = addr
             rows.append(row)
@@ -667,6 +692,14 @@ def main() -> None:
     args.cc = split_addresses(args.cc)
     args.bcc = split_addresses(args.bcc)
     args.copy_to = split_addresses(args.copy_to)
+    bad = [
+        f"  {flag} {addr!r}: {problem}"
+        for flag, values in (("--cc", args.cc), ("--bcc", args.bcc), ("--copy-to", args.copy_to))
+        for addr in values
+        if (problem := address_problem(addr))
+    ]
+    if bad:
+        sys.exit("Error: invalid copy address(es); nothing sent:\n" + "\n".join(bad))
 
     if args.manifest and not args.campaign_id:
         sys.exit("Error: --campaign-id is required when --manifest is given.")

@@ -1,8 +1,9 @@
 """Shared roster-validation helpers for the certificate toolkit.
 
-Used by both ``generate_certificates.py`` and ``rollup_attendance.py`` so the
-two tools apply exactly the same rules to names and emails, rather than each
-maintaining its own copy that could quietly drift apart.
+Used by ``generate_cert.py``, ``rollup_attendance.py``, ``new_registrants.py``
+and ``mail_merge.py`` so every tool applies exactly the same rules to names
+and emails, rather than each maintaining its own copy that could quietly
+drift apart.
 
 Examples
 --------
@@ -12,15 +13,35 @@ Check a field for common domain typos::
     'gmail.com'
     >>> likely_domain_typo("felix@example.com") is None
     True
+
+Real providers one edit from a known domain must not be flagged::
+
+    >>> likely_domain_typo("participant@ymail.com") is None
+    True
+    >>> likely_domain_typo("participant@mail.com") is None
+    True
+    >>> likely_domain_typo("participant@email.com") is None
+    True
+
+Structure is checked separately from typos::
+
+    >>> structurally_valid_email("participant@example.com")
+    True
+    >>> [structurally_valid_email(e) for e in
+    ...  ["x@y", "a@b..com", "a@.com", "a@com.", "a\tb@c.com", "@b.com", "a@"]]
+    [False, False, False, False, False, False, False]
 """
 
 from __future__ import annotations
 
 import unicodedata
 
-# Domains seen in real MMSU BSP workshop rosters. Extend as new legitimate
-# domains show up; a domain not on this list is simply never flagged, so
-# adding to it can only reduce false positives, never cause new ones.
+# Domains seen in real workshop rosters, plus real providers that sit one
+# edit away from one of them (ymail.com and mail.com are one edit from
+# gmail.com, and email.com is one edit from ymail.com and mail.com; each
+# would otherwise be flagged as a typo). A domain on this list
+# is never flagged itself; adding one also starts flagging addresses one
+# edit away from it, so add only domains participants actually use.
 KNOWN_GOOD_DOMAINS = frozenset(
     {
         "gmail.com",
@@ -29,6 +50,10 @@ KNOWN_GOOD_DOMAINS = frozenset(
         "hotmail.com",
         "mmsu.edu.ph",
         "mymail.mmsu.edu.ph",
+        "ustp.edu.ph",
+        "ymail.com",
+        "mail.com",
+        "email.com",
     }
 )
 
@@ -80,14 +105,15 @@ def likely_domain_typo(email: str) -> str | None:
 
 
 def structurally_valid_email(email: str) -> bool:
-    """Cheap structural check: exactly one '@', no whitespace. Does not
-    check deliverability and does not catch typos -- see likely_domain_typo
-    for that.
+    """Return True if email has the shape of a deliverable address.
+
+    Requires exactly one '@', a non-empty local part, no whitespace, and a
+    domain of at least two non-empty dot-separated labels. Does not check
+    deliverability and does not catch typos -- see likely_domain_typo.
     """
     e = email.strip()
-    return (
-        e.count("@") == 1
-        and " " not in e
-        and not e.startswith("@")
-        and not e.endswith("@")
-    )
+    if e.count("@") != 1 or any(ch.isspace() for ch in e):
+        return False
+    local, domain = e.split("@")
+    labels = domain.split(".")
+    return bool(local) and len(labels) >= 2 and all(labels)

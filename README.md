@@ -235,7 +235,9 @@ The decisions worth explaining, and why they went the way they did.
 
 ### Validation is shared, not duplicated
 
-`rollup_attendance.py`, `generate_cert.py` and `new_registrants.py` all read rosters or form exports and must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by all three. One source of truth means the two tools cannot silently disagree about what a valid email is. `mail_merge.py` does not yet import it; see *Limitations*.
+`rollup_attendance.py`, `generate_cert.py`, `new_registrants.py` and `mail_merge.py` all read rosters or form exports and must apply identical name and email rules. Rather than each carrying its own copy, the rules live once in `roster_checks.py` and are imported by all four. One source of truth means the tools cannot silently disagree about what a valid email is: an address that would block a certificate also blocks a send.
+
+The typo check flags a domain one edit away from a known one, so the known list cuts both ways. A real provider that sits one edit from a listed domain is flagged unless it is listed too — `ymail.com` and `mail.com` are each one edit from `gmail.com`, and `email.com` is one edit from both. Adding a domain to the list therefore needs the same check run again on the providers near it.
 
 ### Session and tier are derived, not trusted
 
@@ -333,7 +335,7 @@ The certificate templates and the rendered communications reports are kept out o
 Stated plainly, because they are the next things to fix.
 
 - **Tests cover `mail_merge.py` and `new_registrants.py` only.** The `mail_merge.py` suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. The `new_registrants.py` suite uses invented participants in a temporary folder. `comms_report.py` and the certificate tools are still exercised by hand.
-- **`mail_merge.py` keeps its own email check.** It rejects only addresses without an `@`, rather than importing `roster_checks.py`, so it does not yet flag domain typos such as `gmail.con` at send time.
+- **Address checks are structural, not deliverability checks.** `roster_checks.py` rejects malformed addresses and typos of known domains, but a well-formed address at a real domain can still bounce. An unlisted institutional domain is never typo-checked.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
 - **Gmail-oriented defaults.** Host and port are configurable, but the credential guidance assumes an app password, and there is no STARTTLS mode or custom certificate option, so a local relay with a self-signed certificate (such as Proton Mail Bridge) is not supported.
