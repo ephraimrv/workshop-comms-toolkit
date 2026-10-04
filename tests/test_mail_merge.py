@@ -144,3 +144,30 @@ def test_valid_template_with_doubled_braces_sends_rendered_body(run, tmp_path):
         "Hi Ben\nf <- function(x) { x + 1 }\n",
     ]
     assert (tmp_path / "s.log").read_text() == "a@example.com\nb@example.com\n"
+
+
+# --- Fix 4: --copy-to takes several addresses, by repetition or commas ---
+
+
+def copy_messages():
+    """Return the summary copies among the recorded messages."""
+    return [m for m in FakeSMTP.sent if m["Subject"].startswith("[Copy]")]
+
+
+@pytest.mark.parametrize(
+    "flags",
+    [
+        ["--copy-to", "lead@example.org", "--copy-to", "host@example.org"],
+        ["--copy-to", "lead@example.org,host@example.org"],
+        ["--copy-to", "lead@example.org, host@example.org", "--copy-to", "LEAD@example.org"],
+    ],
+    ids=["repeated", "comma-separated", "mixed-with-duplicate"],
+)
+def test_copy_to_reaches_every_address_once(run, tmp_path, flags):
+    write(tmp_path / "r.csv", ROSTER)
+    write(tmp_path / "body.txt", "Hi {Name}\n")
+    run("-R", "r.csv", "-b", "body.txt", "--sent-log", "s.log", "-y", *flags)
+    copies = copy_messages()
+    assert len(copies) == 1
+    assert copies[0]["To"] == "lead@example.org, host@example.org"
+    assert len(FakeSMTP.sent) == 3  # two recipients plus one copy

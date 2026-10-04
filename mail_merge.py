@@ -99,7 +99,7 @@ Send and record the run in the campaign manifest read by comms_report.py::
 """
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 import argparse
 import csv
@@ -117,6 +117,28 @@ from email.message import EmailMessage
 from email.utils import parseaddr
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
+
+
+def split_addresses(values: List[str]) -> List[str]:
+    """Return the addresses in values, splitting each on commas.
+
+    An option may be repeated, and each value may itself list several
+    addresses separated by commas, so ``--copy-to a@x.org,b@y.org`` and
+    ``--copy-to a@x.org --copy-to b@y.org`` give the same result. Blank
+    entries are dropped and repeats removed, keeping first-seen order.
+
+    >>> split_addresses(["a@x.org, b@y.org", "c@z.org", "A@x.org", " "])
+    ['a@x.org', 'b@y.org', 'c@z.org']
+    """
+    out: List[str] = []
+    seen: Set[str] = set()
+    for value in values:
+        for part in value.split(","):
+            addr = part.strip()
+            if addr and addr.lower() not in seen:
+                seen.add(addr.lower())
+                out.append(addr)
+    return out
 
 
 def guess_mime(path: Path) -> Tuple[str, str]:
@@ -296,13 +318,13 @@ COPY_PREAMBLE = (
 
 def build_copy_message(
     sender: str,
-    recipient: str,
+    recipients: List[str],
     subject: str,
     template: str,
     shared_attachments: List[Path],
     count: int,
 ) -> EmailMessage:
-    """Build the single summary copy sent to --copy-to.
+    """Build the single summary copy sent to every --copy-to address.
 
     The unrendered template is sent rather than any one recipient's version,
     because no single rendering represents the campaign. Only shared
@@ -311,7 +333,7 @@ def build_copy_message(
     preamble = COPY_PREAMBLE.format(count=count, rule="-" * 60)
     msg = EmailMessage()
     msg["From"] = sender
-    msg["To"] = recipient
+    msg["To"] = ", ".join(recipients)
     msg["Subject"] = f"[Copy] {subject}"
     msg.set_content(preamble + template)
     for path in shared_attachments:
@@ -519,12 +541,14 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--copy-to",
-        default=None,
+        action="append",
+        default=[],
         metavar="ADDRESS",
         help="Send ONE copy of the campaign to this address after the "
         "run, containing the unrendered body template, the recipient "
         "count and any shared attachments. This is the flag to use "
-        "when a supervisor wants a record of what went out.",
+        "when a supervisor wants a record of what went out. Repeat the "
+        "flag, or separate addresses with commas, for several.",
     )
 
     p.add_argument(
@@ -634,6 +658,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    args.cc = split_addresses(args.cc)
+    args.bcc = split_addresses(args.bcc)
+    args.copy_to = split_addresses(args.copy_to)
 
     if args.manifest and not args.campaign_id:
         sys.exit("Error: --campaign-id is required when --manifest is given.")
@@ -777,7 +804,7 @@ def main() -> None:
                 f"-> {len(pending_idx)} emails"
             )
         if args.copy_to:
-            print(f"  [DRY] One copy to: {args.copy_to} -> 1 email")
+            print(f"  [DRY] One copy to: {', '.join(args.copy_to)} -> 1 email")
         print("\nDry run complete. Nothing was sent.")
         return
 
@@ -931,10 +958,10 @@ def main() -> None:
                             sent_this_run,
                         )
                     )
-                    print(f"  copy sent to {args.copy_to}")
+                    print(f"  copy sent to {', '.join(args.copy_to)}")
                 except smtplib.SMTPException as exc:
                     print(
-                        f"  WARNING: copy to {args.copy_to} failed: {exc}",
+                        f"  WARNING: copy to {', '.join(args.copy_to)} failed: {exc}",
                         file=sys.stderr,
                     )
     except smtplib.SMTPAuthenticationError:

@@ -161,7 +161,7 @@ Sends one personalised email per row of a CSV or TSV roster.
 - Every attachment verified to exist *before* the first message is sent
 - Resumable: addresses already in the sent log are skipped
 - `--manifest` appends a one-line JSON record of each run to the campaign manifest, making the send and its documentation one step
-- `--copy-to` sends a single archival copy of the campaign after the run, distinct from `--cc`/`--bcc` which copy an address on *every* message
+- `--copy-to` sends a single archival copy of the campaign after the run, distinct from `--cc`/`--bcc` which copy an address on *every* message. All three take several addresses, either by repeating the flag or as one comma-separated value
 - `--dry-run` validates roster, placeholders, and attachments, and renders every message body, without sending
 - Interactive confirmation before any real send
 

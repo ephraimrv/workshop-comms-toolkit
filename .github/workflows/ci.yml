@@ -26,6 +26,6 @@ jobs:
       - name: Tests (pytest)
         run: python -m pytest
       - name: Doctests
-        run: python -m doctest roster_checks.py new_registrants.py
+        run: python -m doctest roster_checks.py new_registrants.py mail_merge.py
       - name: Apps Script logic (node)
         run: node --test apps_script/day_capacity/day_capacity.test.js
