@@ -1,7 +1,7 @@
 """Regression tests for mail_merge.py.
 
-Run from the repository root with ``python -m pytest``, so the root is on
-sys.path and ``import mail_merge`` resolves. No email is sent: SMTP_SSL is
+Run with ``pytest`` or ``python -m pytest``; pyproject.toml puts the
+repository root on sys.path so ``import mail_merge`` resolves either way. No email is sent: SMTP_SSL is
 replaced by a fake that records messages.
 """
 
