@@ -18,6 +18,8 @@ Features
   a template that cannot be filled before any connection is opened.
 * Fills message templates from any roster column, e.g. ``{Name}``,
   ``{Department}``, or ``{Organisation}``.
+* Rejects a roster in which any row leaves a referenced placeholder blank,
+  unless that column is named with ``--allow-blank``.
 * Dry-run mode for validation without sending email.
 * Automatically skips recipients recorded in ``sent.log``.
 * Requires interactive confirmation before a real send
@@ -197,6 +199,39 @@ PLACEHOLDER_HINT = (
     "Google Forms exports) cannot be used directly: rename the column in the "
     "roster. An empty {} is not allowed."
 )
+
+
+def blank_placeholders(
+    rows: List[Dict[str, str]],
+    needed: Set[str],
+    email_col: str,
+    allowed: Set[str],
+) -> List[str]:
+    """Return one line per row that leaves a referenced placeholder blank.
+
+    A field that is present but empty passes load_roster, and str.format
+    fills its placeholder with nothing, so without this check a dry run
+    reports success for a message that would go out with a gap in it.
+    Only placeholders the template references are checked; columns in
+    allowed may be blank. Values are already stripped by load_roster, so
+    a cell holding only spaces counts as blank.
+
+    >>> rows = [{"email": "a@x.org", "link": "", "dept": ""},
+    ...         {"email": "b@x.org", "link": "L", "dept": ""}]
+    >>> blank_placeholders(rows, {"link"}, "email", set())
+    ['  a@x.org: link']
+    >>> blank_placeholders(rows, {"link", "dept"}, "email", {"dept"})
+    ['  a@x.org: link']
+    >>> blank_placeholders(rows, {"link"}, "email", {"link"})
+    []
+    """
+    checked = sorted(needed - allowed)
+    problems: List[str] = []
+    for row in rows:
+        empty = [field for field in checked if row.get(field, "") == ""]
+        if empty:
+            problems.append(f"  {row[email_col]}: {', '.join(empty)}")
+    return problems
 
 
 def render_bodies(
@@ -647,6 +682,15 @@ def parse_args() -> argparse.Namespace:
         help="Free-text note recorded with the manifest entry.",
     )
     p.add_argument(
+        "--allow-blank",
+        action="append",
+        default=[],
+        metavar="COLUMN",
+        help="Roster column whose placeholder may be blank for some rows. "
+        "Without it, any blank value for a placeholder the body uses stops "
+        "the run before sending. Repeat the flag for several columns.",
+    )
+    p.add_argument(
         "--dry-run",
         action="store_true",
         help="Validate the roster, placeholders and attachments, "
@@ -734,6 +778,23 @@ def main() -> None:
             "If you meant a literal brace in the body (for example R code "
             "such as function(x) { x + 1 }), double it: {{ and }}.\n"
             f"{PLACEHOLDER_HINT}"
+        )
+    stray_allowed = sorted(set(args.allow_blank) - set(headers))
+    if stray_allowed:
+        sys.exit(
+            f"Error: --allow-blank names column(s) not in the roster: "
+            f"{stray_allowed}.\nAvailable columns: {headers}"
+        )
+    blanks = blank_placeholders(
+        participants, needed, args.email_col, set(args.allow_blank)
+    )
+    if blanks:
+        sys.exit(
+            f"Error: {len(blanks)} row(s) leave a placeholder blank; "
+            "nothing sent:\n"
+            + "\n".join(blanks)
+            + "\nFill the value in the roster, or, if a blank is intended, "
+            "name the column with --allow-blank."
         )
     try:
         bodies = render_bodies(template, participants, args.email_col)
