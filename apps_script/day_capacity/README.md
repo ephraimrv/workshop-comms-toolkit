@@ -2,6 +2,8 @@
 
 A Google Apps Script, bound to one registration form, that removes a day from the form's day question once that day has reached its capacity, and closes the form when every day is full.
 
+A second file, `move_links.js`, logs the edit link of a registrant's response, so that a registrant who asks to change day can be moved by editing their own response (see *Moving a registrant to another day*).
+
 Written for the USTP Cagayan de Oro workshop (12–14 October 2026): three identical days, 40 on-site seats each, one form.
 
 ## How it works
@@ -38,6 +40,25 @@ Do all of this on a **copy** of the form first, with `capacity: 2`.
 
 After deleting a response in the form's **Responses** tab, run `refresh` by hand.
 
+## Moving a registrant to another day
+
+Response editing is off by default, and a response can be edited only through its own edit link, which Google Forms shows to the person who submitted it but not to the form's editors. `move_links.js` logs that link. It changes nothing on the form.
+
+1. In the Apps Script editor, add a second script file (**+** next to **Files** → **Script**, named `MoveLinks`) and paste in `move_links.js`. It reads `CONFIG.itemId` from `Code.gs`.
+2. In the form: **Settings** → **Responses** → turn on **Allow response editing**.
+3. In `MOVE_EMAILS`, replace the example addresses with the registrants' addresses and run `logMoveLinks`. Each match logs the address, response ID, timestamp, current day and edit link; an address with no response is listed under `NOT FOUND`. The function refuses to run while any example address remains.
+4. Send each registrant only their own link, privately. They open it, change the day and submit.
+5. When everyone has edited, turn **Allow response editing** off, which also disables the links, and run `refresh`.
+6. Put the example addresses back in `MOVE_EMAILS`.
+
+What the edit link does, observed on the Cagayan de Oro form on 6 October 2026:
+
+- **The registrant edits, not the form's editor.** The form collects verified email addresses. Opened by an editor, a registrant's edit link showed the response and offered to record the *editor's* address with it, so submitting it would have replaced the registrant's address. Each registrant must open their own link while signed in to the account they registered with.
+- **An edit changes the existing response.** The linked sheet keeps one row for the person, and that row's timestamp becomes the time of the edit.
+- **Anyone holding a link can change that response while editing is on,** so each link goes only to its owner, and editing is turned off as soon as the moves are done.
+
+Whether an edit fires the submit trigger has not been checked; the `refresh` in step 5 recounts either way.
+
 ## Keeping the repository and the form in sync (optional)
 
 Copy-and-paste is enough. To push from the repository instead, use [clasp](https://github.com/google/clasp), Google's command-line tool for Apps Script:
@@ -53,14 +74,16 @@ Turn on the Apps Script API once at <https://script.google.com/home/usersettings
 {"scriptId": "PASTE-THE-SCRIPT-ID", "rootDir": "."}
 ```
 
-and push with `clasp push`. `.claspignore` limits the push to `Code.js` and `appsscript.json`; the test file must never be pushed, because it uses Node's `require()`. `.clasp.json` is gitignored: it names the script bound to a form that holds participants' data. Command names differ between clasp versions; check `clasp --help` if one is missing.
+and push with `clasp push`. `.claspignore` limits the push to `Code.js`, `move_links.js` and `appsscript.json`; the test files must never be pushed, because it uses Node's `require()`. `.clasp.json` is gitignored: it names the script bound to a form that holds participants' data. Command names differ between clasp versions; check `clasp --help` if one is missing.
 
 ## Tests
 
-The counting and filtering logic is plain JavaScript with no Google services, so it runs under Node's built-in test runner:
+The counting, filtering and address-matching logic is plain JavaScript with no Google services, so it runs under Node's built-in test runner:
 
 ```bash
-node --test apps_script/day_capacity/day_capacity.test.js
+node --test 'apps_script/day_capacity/*.test.js'
 ```
 
-The Apps Script entry points (`listItems`, `checkSetup`, `refresh`, `installTrigger`) can only run inside Apps Script and are tested by hand on a copy of the form, as above.
+One test also fails if the committed `MOVE_EMAILS` holds anything but example addresses.
+
+The Apps Script entry points (`listItems`, `checkSetup`, `refresh`, `installTrigger`, `logMoveLinks`) can only run inside Apps Script and are tested by hand on a copy of the form, as above.

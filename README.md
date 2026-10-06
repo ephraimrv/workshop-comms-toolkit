@@ -149,7 +149,7 @@ The file itself holds no participant data; the form export, logs, exclusions and
 
 ### `apps_script/day_capacity/`
 
-A Google Apps Script bound to a registration form: after every submission it recounts the answers to the day question and removes any day that has reached its capacity, closing the form when every day is full. It runs inside the form's own Google account, so responses never leave Google. Written in JavaScript because Apps Script is; setup, limits and tests are in its own [README](apps_script/day_capacity/README.md).
+A Google Apps Script bound to a registration form: after every submission it recounts the answers to the day question and removes any day that has reached its capacity, closing the form when every day is full. It runs inside the form's own Google account, so responses never leave Google. A second file in the same project, `move_links.js`, logs the edit link of a registrant's response, which Google Forms does not show to the form's editors, so that a registrant can be moved to another day by editing their own response. Written in JavaScript because Apps Script is; setup, limits and tests are in its own [README](apps_script/day_capacity/README.md).
 
 ### `mail_merge.py`
 
@@ -318,7 +318,7 @@ python ../../workshop-comms-toolkit/comms_report.py -c campaigns.jsonl --check
 ├── new_registrants.py     # find registrants not yet sent a campaign
 ├── roster_checks.py       # shared name/email validation
 ├── apps_script/
-│   └── day_capacity/      # Google Apps Script: per-day seat limit on a form
+│   └── day_capacity/      # Google Apps Script: per-day seat limit; day-move edit links
 ├── tests/                 # pytest suite (mail_merge.py, new_registrants.py)
 ├── attachments/           # participant-facing guides distributed in the series
 ├── fonts/                 # certificate font (static Montserrat-Regular.ttf)

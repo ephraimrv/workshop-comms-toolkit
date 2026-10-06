@@ -1,6 +1,7 @@
-# Push only the script and its manifest. The test file uses Node's
+# Push only the scripts and the manifest. The test files use Node's
 # require(), which does not exist in Apps Script and would break the
 # whole project if pushed.
 **/**
 !Code.js
+!move_links.js
 !appsscript.json
