@@ -4,7 +4,7 @@ A Google Apps Script, bound to one registration form, that removes a day from th
 
 A second file, `move_links.js`, logs the edit link of a registrant's response, so that a registrant who asks to change day can be moved by editing their own response (see *Moving a registrant to another day*).
 
-Written for the USTP Cagayan de Oro workshop (12–14 October 2026): three identical days, 40 on-site seats each, one form.
+Written for the USTP Cagayan de Oro workshop (12–14 October 2026): three identical days, 40 on-site seats each, shared between two forms that each carry their own copy of the script: a public form (`capacity: 33`) and a priority form for nominees (`capacity: 7`).
 
 ## How it works
 
@@ -19,6 +19,7 @@ After every submission an installable trigger runs `handleSubmit`, which recount
 ## Limits
 
 - **It counts submissions, not confirmed seats.** A duplicate, an ineligible registrant or someone without a laptop still takes a place until their response is deleted and `refresh()` is run. Seats are confirmed by email; this script only stops a full day collecting more registrations.
+- **One capacity for every day.** `CONFIG.capacity` applies to all days alike, so one day cannot be given more seats than another. When the seats are split between two forms, raise one form's capacity only once every day's count on the other form is known.
 - **It acts after the fact.** Someone who opened the form before a day filled can still submit that day, so a day can end at 41 or 42.
 - **It edits the form while it is live.** Removing a choice does not relabel earlier answers, so the data stays consistent, but the form should say so: *"Days that are full are removed from the list."*
 - **The form's Individual view cannot show an answer whose day has been removed.** The response is stored and counted correctly, but once its day has been removed from the question, the Individual view shows the answer greyed out, sometimes under another day's label (observed in testing, 29 September 2026). To find which response to delete, identify it in the linked response sheet (timestamp and email address), then delete it in the form's Individual view by the same timestamp and email address.
@@ -36,7 +37,7 @@ Do all of this on a **copy** of the form first, with `capacity: 2`.
 5. Run `checkSetup`. It stops with a message if anything does not match, otherwise prints the current counts.
 6. Run `installTrigger` **once**. Running it again replaces the trigger rather than adding a second one.
 7. Test: submit three responses choosing Day 1. After the second, Day 1 should disappear from the live form; see **Executions** (left sidebar) for each run's log.
-8. When the test passes, repeat steps 1–6 on the real form with `capacity: 40`.
+8. When the test passes, repeat steps 1–6 on each real form, with its own share of the seats as `capacity`.
 
 After deleting a response in the form's **Responses** tab, run `refresh` by hand.
 

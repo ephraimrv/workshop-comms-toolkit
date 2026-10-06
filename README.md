@@ -156,6 +156,7 @@ A Google Apps Script bound to a registration form: after every submission it rec
 Sends one personalised email per row of a CSV or TSV roster.
 
 - `{Column}` placeholders drawn from any roster column. A placeholder must be a plain column name: inside `{...}` Python reads `.` and `[` as attribute and index access, `:` as a format spec and `!` as a conversion, so a header such as a Google Forms question (`Full name (e.g. Juan Dela Cruz)`) must be renamed before it can be used
+- A blank value for any placeholder the body uses stops the run before anything is sent; `--allow-blank COLUMN` permits blanks in a column where they are intended
 - Per-recipient attachments (`--attachment-col`), shared attachments (`--attach`), or both
 - Attachment display names independent of the filenames on disk (`--attachment-name-col`), so files are stored under ASCII serials while recipients see readable names
 - Every attachment verified to exist *before* the first message is sent
@@ -270,7 +271,7 @@ Because sends are resumable, one campaign can span several runs. Lines are event
 
 ### Everything fails before anything sends
 
-Roster parsing reports *all* malformed rows at once. Placeholders are validated against real headers, and every message body is rendered, so a template that cannot be filled fails during `--dry-run` rather than after login. The send loop reuses those rendered bodies, so what was validated is exactly what is sent. Every attachment path is resolved and checked. Duplicates are rejected. Only then does the tool ask for confirmation. The alternative — discovering a missing certificate at recipient 43 — leaves a campaign half-sent and a person to apologise to.
+Roster parsing reports *all* malformed rows at once. Placeholders are validated against real headers, and every message body is rendered, so a template that cannot be filled fails during `--dry-run` rather than after login. A blank value for a placeholder the body uses also stops the run, unless its column is named with `--allow-blank`: an empty string is a valid value to `str.format`, so without the check a dry run would pass a message with a gap where a link or a name should be. The send loop reuses those rendered bodies, so what was validated is exactly what is sent. Every attachment path is resolved and checked. Duplicates are rejected. Only then does the tool ask for confirmation. The alternative — discovering a missing certificate at recipient 43 — leaves a campaign half-sent and a person to apologise to.
 
 ### Backward-compatible manifest schema
 
@@ -335,7 +336,8 @@ The certificate templates and the rendered communications reports are kept out o
 
 Stated plainly, because they are the next things to fix.
 
-- **Tests cover `mail_merge.py` and `new_registrants.py` only.** The `mail_merge.py` suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. The `new_registrants.py` suite uses invented participants in a temporary folder. `comms_report.py` and the certificate tools are still exercised by hand.
+- **Python tests cover `mail_merge.py` and `new_registrants.py` only.** The Apps Script's pure logic has Node tests; its entry points are tested by hand on a copy of the form. The `mail_merge.py` suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. The `new_registrants.py` suite uses invented participants in a temporary folder. `comms_report.py` and the certificate tools are still exercised by hand.
+- **`new_registrants.py` writes the full name into `name`.** A roster that greets by first name, or that carries another per-person column such as `certificate_name`, has to be built or edited by hand: the tool refuses a template with any per-person column other than `name`.
 - **Address checks are structural, not deliverability checks.** `roster_checks.py` rejects malformed addresses and typos of known domains, but a well-formed address at a real domain can still bounce. An unlisted institutional domain is never typo-checked.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
@@ -358,6 +360,12 @@ isort --check-only .
 mypy mail_merge.py comms_report.py new_registrants.py
 python -m pytest
 python -m doctest roster_checks.py new_registrants.py
+```
+
+The Apps Script logic is tested with Node's built-in runner (Node.js required):
+
+```bash
+node --test 'apps_script/day_capacity/*.test.js'
 ```
 
 Credentials are read from the environment, never from a file:
