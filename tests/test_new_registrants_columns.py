@@ -198,3 +198,29 @@ def test_exactly_one_of_sent_log_and_everyone(event: Path,
     with pytest.raises(SystemExit) as exc:
         new_registrants.main(argv)
     assert exc.value.code == 2
+
+
+def test_appending_under_a_different_header_is_refused(event: Path) -> None:
+    """A roster made from another template is left untouched."""
+    assert run(event, "--write", template="contact_template.csv",
+               lookup=None) == 0
+    before = (event / "roster.csv").read_text(encoding="utf-8")
+    assert run_everyone(event, "--write") == 2
+    assert (event / "roster.csv").read_text(encoding="utf-8") == before
+
+
+def test_ragged_roster_is_refused(event: Path) -> None:
+    write_csv(event / "roster.csv", [
+        ["email", "contact_phone", "contact_messenger", "name"],
+        ["a@example.edu.ph", *CONTACT, "A", "extra"],
+    ])
+    assert run(event, template="contact_template.csv", lookup=None) == 2
+
+
+def test_same_width_different_columns_is_refused(event: Path) -> None:
+    """Equal column counts do not make two headers the same."""
+    write_csv(event / "roster.csv", [
+        ["email", "contact_messenger", "contact_phone", "name"],
+        ["a@example.edu.ph", *reversed(CONTACT), "A"],
+    ])
+    assert run(event, template="contact_template.csv", lookup=None) == 2

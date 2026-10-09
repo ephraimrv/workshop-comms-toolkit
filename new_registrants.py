@@ -57,7 +57,10 @@ with an initial lacking its full stop are flagged for a human to correct
 in the roster. So are addresses
 outside ``--domain`` and addresses one edit from a known domain. A
 structurally broken address, or an answer that matches no lookup key,
-is flagged and blocks ``--write``.
+is flagged and blocks ``--write``. An existing ``--roster`` whose header
+differs from the template's, or that has a row of the wrong length,
+stops the run: appending to it would put values under the wrong
+columns.
 
 Example
 -------
@@ -87,7 +90,7 @@ With per-person columns filled from the form and a lookup file::
 from __future__ import annotations
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 import csv
 import sys
@@ -306,16 +309,33 @@ def read_template(path: Path, looked_up: set[str]
     return header, {c: first[c] for c in others}
 
 
-def read_roster_addresses(path: Path, email_col: str) -> set[str]:
-    """Return the lower-cased addresses already in a roster, if any."""
+def read_roster_addresses(path: Path, header: list[str]) -> set[str]:
+    """Return the lower-cased addresses already in a roster, if any.
+
+    Raises InputError when an existing roster's header differs from
+    ``header`` or any of its rows has a different number of fields:
+    appending to it would put rows under the wrong columns.
+    """
     if not path.exists():
         return set()
     with path.open(encoding="utf-8-sig", newline="") as f:
-        return {
-            (row[email_col] or "").strip().lower()
-            for row in csv.DictReader(f)
-            if (row[email_col] or "").strip()
-        }
+        reader = csv.reader(f)
+        existing = next(reader, None)
+        if existing is None:
+            return set()
+        if existing != header:
+            raise InputError(
+                f"{path} exists with columns {existing}, not the "
+                f"template's {header}; choose a new --roster")
+        found: set[str] = set()
+        for number, row in enumerate(reader, start=2):
+            if len(row) != len(header):
+                raise InputError(
+                    f"{path} line {number} has {len(row)} fields, "
+                    f"not {len(header)}")
+            if row[0].strip():
+                found.add(row[0].strip().lower())
+    return found
 
 
 def first_given_name(name: str) -> str:
@@ -435,6 +455,7 @@ def main(argv: list[str] | None = None) -> int:
         excluded: set[str] = set()
         for path in args.exclude:
             excluded |= read_addresses(path)
+        in_roster = read_roster_addresses(args.roster, header)
     except InputError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -446,7 +467,7 @@ def main(argv: list[str] | None = None) -> int:
               "is it the right log?", file=sys.stderr)
 
     done = excluded.union(*logs.values())
-    queued = read_roster_addresses(args.roster, header[0]) - done
+    queued = in_roster - done
     skip = done | queued
     new = [p for p in form if p.email.lower() not in skip]
 
