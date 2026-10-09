@@ -134,7 +134,19 @@ Works out who on a still-open registration form has not yet received a campaign,
 
 It keeps no record of its own of who was sent: it subtracts every address in the sent logs passed to it, plus an optional exclusions file, from the form export. The sent log is already the one reliable record of delivery (see *The sent log is written after the send*), so a second list could only disagree with it. A log in an unexpected format would match nobody and quietly turn everyone in it into a "new" registrant, so any line that is not a single bare address stops the run, and `--write` is refused while any log shares no address with the form. When one address registered twice, the later row's name is kept.
 
-Names are copied verbatim, as in `generate_cert.py`. Names in capitals, surname-first with a comma, with a lower-case word or with repeated spaces are flagged for a human to correct, together with addresses outside the expected domain or one edit from a known one. The shared `contact_*` columns are copied from an earlier roster; any other per-person column in that roster stops the run rather than being filled with a guess. Without `--write` it only reports.
+Names are copied verbatim, as in `generate_cert.py`. Names in capitals, surname-first with a comma, with a lower-case word, with repeated spaces or with an initial lacking its full stop are flagged for a human to correct, together with addresses outside the expected domain or one edit from a known one. Without `--write` it only reports.
+
+The columns of the new roster are those of an earlier roster passed as `--template`, in the same order, and each is filled from one source:
+
+| Column | Filled with |
+| --- | --- |
+| first column | the registrant's address |
+| `name` | the full name, or with `--greeting first` the first given name ("Ma." keeps the word after it) |
+| `certificate_name` | the full name |
+| `contact_*` | the template's own values, shared by every recipient |
+| any column in the `--lookup` file | the value for the registrant's answer in `--lookup-col` |
+
+Anything else in the template stops the run rather than being filled with a guess. The lookup file is a small CSV whose first column is the key; an answer matches a key exactly or by its text before the first colon, so the key `Day 1` matches the form answer `Day 1: Monday, 12 October`. I use it to turn each registrant's day into the date and venue their email gives, so a venue is typed once per day rather than once per person. A repeated key or a blank value stops the run, and `--write` is refused while any registrant's answer matches no key. Since the later row for an address wins, a registrant who has edited their response to move day is written with the new day.
 
 ```bash
 python ../../workshop-comms-toolkit/new_registrants.py \
@@ -143,9 +155,27 @@ python ../../workshop-comms-toolkit/new_registrants.py \
     --exclude exclusions.txt \
     --template rosters/install-phase1-v2.csv \
     --roster rosters/install-phase1-v3.csv
+
+# a roster that greets by first name and carries each person's day and venue
+python ../../workshop-comms-toolkit/new_registrants.py \
+    --form "Event Registration Responses - Form Responses 1.csv" \
+    --sent-log logs/install-2026-10-06.sent.log \
+    --exclude exclusions.txt \
+    --template rosters/install-2026-10-08.csv \
+    --roster rosters/venue-2026-10-09.csv \
+    --greeting first \
+    --lookup day_lookup.csv \
+    --lookup-col "Which day would you prefer to attend?"
 ```
 
-The file itself holds no participant data; the form export, logs, exclusions and rosters are read from the event folder at run time.
+```csv
+day,workshop_day,venue
+Day 1,"Monday, October 12","Room A, Main Building"
+Day 2,"Tuesday, October 13","Room A, Main Building"
+Day 3,"Wednesday, October 14","Board Room, Admin Building"
+```
+
+The file itself holds no participant data; the form export, logs, exclusions, lookup file and rosters are read from the event folder at run time. A registrant who withdraws is listed in the exclusions file, with the reason as a `#` comment, so that a rerun reproduces the roster without them.
 
 ### `apps_script/day_capacity/`
 
@@ -337,7 +367,7 @@ The certificate templates and the rendered communications reports are kept out o
 Stated plainly, because they are the next things to fix.
 
 - **Python tests cover `mail_merge.py` and `new_registrants.py` only.** The Apps Script's pure logic has Node tests; its entry points are tested by hand on a copy of the form. The `mail_merge.py` suite replaces `smtplib.SMTP_SSL` with a fake that records messages, so no email is sent. That works by patching a module-level name; passing an already-connected SMTP object into an extracted send function would be a cleaner seam. The `new_registrants.py` suite uses invented participants in a temporary folder. `comms_report.py` and the certificate tools are still exercised by hand.
-- **`new_registrants.py` writes the full name into `name`.** A roster that greets by first name, or that carries another per-person column such as `certificate_name`, has to be built or edited by hand: the tool refuses a template with any per-person column other than `name`.
+- **`new_registrants.py` fills per-person columns only from the form's name or a lookup keyed on one form answer.** A column that needs two answers combined, or a value no answer determines, still has to be added by hand. Names that need correcting are flagged, never corrected, so a form with many names in capitals still means hand edits before a send.
 - **Address checks are structural, not deliverability checks.** `roster_checks.py` rejects malformed addresses and typos of known domains, but a well-formed address at a real domain can still bounce. An unlisted institutional domain is never typo-checked.
 - **Communications sent outside the tool need a manual manifest line.** A message sent by hand is recorded with an empty `sent_log`, which the report marks as unverifiable rather than wrong.
 - **Plain-text email bodies only.** No HTML multipart alternative.
