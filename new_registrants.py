@@ -14,7 +14,11 @@ folder, outside the repository.
 What counts as already sent
 ---------------------------
 An address appears in a ``--sent-log`` or an ``--exclude`` file, one
-bare address per line, compared case-insensitively. Blank lines and
+bare address per line, compared case-insensitively. For a campaign that
+goes to every registrant, such as a change of venue, ``--everyone``
+replaces ``--sent-log``: every address on the form is listed except the
+excluded ones. One of the two must be given, so that a forgotten sent
+log cannot quietly turn into a send to everyone. Blank lines and
 text after ``#`` are ignored. Any other line stops the run: a log in a
 different format would match nobody, and everyone in it would be
 treated as not yet sent. For the same reason ``--write`` is refused
@@ -83,7 +87,7 @@ With per-person columns filled from the form and a lookup file::
 from __future__ import annotations
 
 __author__ = "Jan Ephraim R. Vallente"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 import csv
 import sys
@@ -149,9 +153,14 @@ def parse_args(argv: list[str] | None = None) -> Namespace:
     parser.add_argument(
         "--form", type=Path, required=True,
         help="registration form responses exported as CSV")
-    parser.add_argument(
-        "--sent-log", type=Path, nargs="+", required=True,
+    earlier = parser.add_mutually_exclusive_group(required=True)
+    earlier.add_argument(
+        "--sent-log", type=Path, nargs="+", default=[],
         help="sent logs of the earlier runs of this campaign")
+    earlier.add_argument(
+        "--everyone", action="store_true",
+        help="list every registrant on the form except --exclude; "
+             "for a campaign with no earlier runs")
     parser.add_argument(
         "--exclude", type=Path, nargs="*", default=[],
         help="files of further addresses to skip")
@@ -441,6 +450,9 @@ def main(argv: list[str] | None = None) -> int:
     skip = done | queued
     new = [p for p in form if p.email.lower() not in skip]
 
+    if args.everyone:
+        print("--everyone: no sent logs; every registrant not excluded "
+              "is listed")
     print(f"form: {len(form)} addresses | sent or excluded: "
           f"{len(on_form & done)} | in roster, not yet sent: "
           f"{len(on_form & queued)} | new: {len(new)}")

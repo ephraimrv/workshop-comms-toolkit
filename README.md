@@ -132,7 +132,7 @@ python generate_cert.py cert_roster.csv \
 
 Works out who on a still-open registration form has not yet received a campaign, and appends them to that campaign's roster, so the same body can be resent batch by batch as registrations arrive.
 
-It keeps no record of its own of who was sent: it subtracts every address in the sent logs passed to it, plus an optional exclusions file, from the form export. The sent log is already the one reliable record of delivery (see *The sent log is written after the send*), so a second list could only disagree with it. A log in an unexpected format would match nobody and quietly turn everyone in it into a "new" registrant, so any line that is not a single bare address stops the run, and `--write` is refused while any log shares no address with the form. When one address registered twice, the later row's name is kept.
+It keeps no record of its own of who was sent: it subtracts every address in the sent logs passed to it, plus an optional exclusions file, from the form export. For a message meant for every registrant, such as a change of venue, `--everyone` takes the place of `--sent-log` and lists everyone on the form except the excluded. One of the two is required, so a forgotten sent log stops the run instead of quietly becoming a send to everyone. The sent log is already the one reliable record of delivery (see *The sent log is written after the send*), so a second list could only disagree with it. A log in an unexpected format would match nobody and quietly turn everyone in it into a "new" registrant, so any line that is not a single bare address stops the run, and `--write` is refused while any log shares no address with the form. When one address registered twice, the later row's name is kept.
 
 Names are copied verbatim, as in `generate_cert.py`. Names in capitals, surname-first with a comma, with a lower-case word, with repeated spaces or with an initial lacking its full stop are flagged for a human to correct, together with addresses outside the expected domain or one edit from a known one. Without `--write` it only reports.
 
@@ -156,10 +156,21 @@ python ../../workshop-comms-toolkit/new_registrants.py \
     --template rosters/install-phase1-v2.csv \
     --roster rosters/install-phase1-v3.csv
 
-# a roster that greets by first name and carries each person's day and venue
+# a roster of newcomers that greets by first name and carries each day and venue
 python ../../workshop-comms-toolkit/new_registrants.py \
     --form "Event Registration Responses - Form Responses 1.csv" \
     --sent-log logs/install-2026-10-06.sent.log \
+    --exclude exclusions.txt \
+    --template rosters/install-2026-10-08.csv \
+    --roster rosters/install-2026-10-09.csv \
+    --greeting first \
+    --lookup day_lookup.csv \
+    --lookup-col "Which day would you prefer to attend?"
+
+# every registrant except the excluded, for a message with no earlier runs
+python ../../workshop-comms-toolkit/new_registrants.py \
+    --form "Event Registration Responses - Form Responses 1.csv" \
+    --everyone \
     --exclude exclusions.txt \
     --template rosters/install-2026-10-08.csv \
     --roster rosters/venue-2026-10-09.csv \

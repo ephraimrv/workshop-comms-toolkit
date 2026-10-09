@@ -152,3 +152,49 @@ def test_lookup_needs_its_column(event: Path) -> None:
             "--lookup", str(event / "lookup.csv"),
         ])
     assert exc.value.code == 2
+
+
+def run_everyone(event: Path, *extra: str) -> int:
+    """Run main() with --everyone in place of --sent-log."""
+    return new_registrants.main([
+        "--form", str(event / "form.csv"),
+        "--everyone",
+        "--template", str(event / "template.csv"),
+        "--roster", str(event / "roster.csv"),
+        "--domain", "example.edu.ph",
+        "--lookup", str(event / "lookup.csv"),
+        "--lookup-col", DAY_COL,
+        *extra,
+    ])
+
+
+def test_everyone_lists_all_but_the_excluded(event: Path) -> None:
+    (event / "exclude.txt").write_text(
+        "pedro@example.edu.ph  # withdrew\n", encoding="utf-8")
+    assert run_everyone(event, "--exclude", str(event / "exclude.txt"),
+                        "--write") == 0
+    emails = {r["email"] for r in read_roster(event / "roster.csv")}
+    assert emails == {"sent.before@example.edu.ph",
+                      "ma.lorna@example.edu.ph"}
+
+
+def test_everyone_rerun_adds_nobody(event: Path) -> None:
+    assert run_everyone(event, "--write") == 0
+    before = (event / "roster.csv").read_text(encoding="utf-8")
+    assert run_everyone(event, "--write") == 0
+    assert (event / "roster.csv").read_text(encoding="utf-8") == before
+
+
+@pytest.mark.parametrize("earlier", [
+    [],
+    ["--everyone", "--sent-log", "sent.log"],
+], ids=["neither", "both"])
+def test_exactly_one_of_sent_log_and_everyone(event: Path,
+                                              earlier: list[str]) -> None:
+    argv = ["--form", str(event / "form.csv"),
+            "--template", str(event / "contact_template.csv"),
+            "--roster", str(event / "roster.csv")]
+    argv += [str(event / a) if a == "sent.log" else a for a in earlier]
+    with pytest.raises(SystemExit) as exc:
+        new_registrants.main(argv)
+    assert exc.value.code == 2
